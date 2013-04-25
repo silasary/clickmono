@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PlistCS;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,6 +42,18 @@ namespace ClickMac
                 AssociateFileExtMac(fa, ext);
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
                 AssociateFileExtWin32(fa, ext);
+            AssociateInternal(fa);
+        }
+
+        private static void AssociateInternal(XEleDict fa)
+        {
+            Dictionary<string, string> data;
+            if (File.Exists("assocs.plist"))
+                data = (Dictionary<string, string>)Plist.readPlist("assocs.plist");
+            else
+                data = new Dictionary<string, string>();
+            data[fa["extension"]] = Program.entry.DeploymentProviderUrl;
+            Plist.writeXml(data, "assocs.plist");
         }
 
         private static void AssociateFileExtWin32(XEleDict fa, string ext)
@@ -78,7 +91,7 @@ namespace ClickMac
         private static void AssociateFileExtMac(XEleDict fa, string ext)
         {
 
-            Dictionary<string, dynamic> plist = (Dictionary<string, dynamic>)PlistCS.Plist.readPlist(infoPlist);
+            Dictionary<string, dynamic> plist = (Dictionary<string, dynamic>)Plist.readPlist(infoPlist);
 
             List<Dictionary<string, dynamic>> CFBundleDocumentTypes;
             if (plist.ContainsKey("CFBundleDocumentTypes"))

@@ -10,15 +10,18 @@ using System.Xml.Linq;
 
 namespace ClickMac
 {
-    internal class Program
+    internal static class Program
     {
         public static EntryPoint entry = new EntryPoint();
         static Process process;
+
+        static bool InternalLaunch = true;
 
         public static string infoPlist { get { return Path.Combine("..", "Info.plist"); } }
 
         private static void Main(string[] args)
         {
+            Environment.CurrentDirectory = Path.GetDirectoryName(Location);
             if (args.Length > 1 && args[0] == "-o")
             {
                 LoadUnknownFile(args[1]);
@@ -39,10 +42,16 @@ namespace ClickMac
             else
             {
                 var manifests = Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.application");
-                if (manifests.Length >= 1)
-                    Loading.ReadManifest(manifests[0]);
+                var pref = manifests.FirstOrDefault(x => !Path.GetFileName(x).StartsWith("ClickMac"));
+                if (pref != null)
+                    Loading.ReadManifest(pref);
+                else
+                {
+                    Console.WriteLine("Could not find an .application file.  Aborting.");
+                    return;
+                }
             }
-            if (File.Exists(infoPlist ))
+            if (File.Exists(infoPlist))
             {
                 dynamic plist = PlistCS.Plist.readPlist(infoPlist);
                 Console.WriteLine("Setting plist icon to '{0}'", entry.icon);
@@ -60,10 +69,48 @@ namespace ClickMac
                 //    File.WriteAllBytes(Path.Combine(entry.folder, "System.Deployment.dll"), array);
                 //}
                 Environment.SetEnvironmentVariable("ClickOnceAppVersion", entry.version);
-                
+                if (InternalLaunch)
+                {
+                    try
+                    {
+                        FileInfo targetFile = new FileInfo(Path.Combine(entry.folder, entry.executable));
+                        Kamahl.Deployment.ApplicationDeployment.CurrentDeployment = new Kamahl.Deployment.ApplicationDeployment(entry.ActivationUri, new Version(entry.version));
+                        var Target = Assembly.LoadFile(targetFile.FullName);
+                        if (Target.EntryPoint.GetParameters().Length == 0)
+                            Target.EntryPoint.Invoke(null, null);
+                        else
+                            Target.EntryPoint.Invoke(null, new string[][] { args });
+                    }
+                    catch (Exception v)
+                    {
+                        Console.WriteLine(v.ToString());
+                        Launch(args);
+                    }
+                }
+                else
+                {
+                    Launch(args);
+                    Console.CancelKeyPress += Console_CancelKeyPress;
+                    process.WaitForExit();
+                }
+            }
+            if (CheckForSelfUpdate(null))
+                return;
+        }
+
+        private static void Launch(string[] args)
+        {
+            try
+            {
+                process = Process.Start(new ProcessStartInfo(Path.Combine(entry.folder, entry.executable), String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
+                process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
+                process.BeginOutputReadLine();
+            }
+            catch (Win32Exception)
+            {
                 try
                 {
-                    process = Process.Start(new ProcessStartInfo(Path.Combine(entry.folder, entry.executable), String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
+                    process = Process.Start(new ProcessStartInfo("mono", String.Format("{0} {1}", Path.Combine(entry.folder, entry.executable), String.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
                     process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
                     process.BeginOutputReadLine();
                 }
@@ -71,25 +118,51 @@ namespace ClickMac
                 {
                     try
                     {
-                        process = Process.Start(new ProcessStartInfo("mono", String.Format("{0} {1}", Path.Combine(entry.folder, entry.executable), String.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
-                        process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
-                        process.BeginOutputReadLine();
+                        process = Process.Start(new ProcessStartInfo("mono", Path.Combine(entry.folder, entry.executable)) { UseShellExecute = true });
                     }
                     catch (Win32Exception)
                     {
-                        try
-                        {
-                            process = Process.Start(new ProcessStartInfo("mono", Path.Combine(entry.folder, entry.executable)) { UseShellExecute = true });
-                        }
-                        catch (Win32Exception)
-                        {
-                            process = Process.Start(new ProcessStartInfo(Path.Combine(entry.folder, entry.executable)) { UseShellExecute = true });
-                        }
+                        process = Process.Start(new ProcessStartInfo(Path.Combine(entry.folder, entry.executable)) { UseShellExecute = true });
                     }
                 }
-                Console.CancelKeyPress += Console_CancelKeyPress;
-                process.WaitForExit();
             }
+        }
+
+        private static bool CheckForSelfUpdate(string[] args)
+        {
+            if (Debugger.IsAttached && args != null)
+                return false;
+            try
+            {
+                if (File.Exists("ClickMac.old.exe"))
+                    File.Delete("ClickMac.old.exe");
+                if (!File.Exists("ClickMac.application"))
+                    File.WriteAllText("ClickMac.application", "<?xml version=\"1.0\" encoding=\"utf-8\"?><asmv1:assembly xsi:schemaLocation=\"urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd\" manifestVersion=\"1.0\" xmlns:asmv1=\"urn:schemas-microsoft-com:asm.v1\" xmlns=\"urn:schemas-microsoft-com:asm.v2\" xmlns:asmv2=\"urn:schemas-microsoft-com:asm.v2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ><assemblyIdentity name=\"ClickMac.application\" version=\"1.0.0.0\" publicKeyToken=\"3ff3731db18bf4c7\" language=\"neutral\" processorArchitecture=\"msil\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><description asmv2:publisher=\"ClickMac\" asmv2:product=\"ClickMac\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><deployment install=\"true\" mapFileExtensions=\"true\"><subscription><update><beforeApplicationStartup /></update></subscription><deploymentProvider codebase=\"https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application\" /></deployment></asmv1:assembly>");
+                entry = new EntryPoint();
+                Loading.ReadManifest("ClickMac.application");
+                if (entry.executable == null)
+                    return false;
+                if (!File.Exists("ClickMac.version") || entry.version != File.ReadAllText("ClickMac.version"))
+                {
+                    var loc = Assembly.GetExecutingAssembly().Location;
+                    File.Move(loc, "ClickMac.old.exe");
+                    File.Copy(Path.Combine(entry.folder, entry.executable), loc);
+                    File.WriteAllText("ClickMac.version", entry.version);
+                    if (args != null)
+                    {
+                        var Updated = Assembly.LoadFile(loc);
+                        Updated.EntryPoint.Invoke(null, new string[][] { args });
+                        return true;
+                    }
+                }
+                entry = new EntryPoint();
+            }
+            catch (WebException)
+            { }
+            catch (IOException) 
+            { }
+            return false;
+
         }
 
         private static void LoadUnknownFile(string file)
@@ -118,6 +191,8 @@ namespace ClickMac
             public string version;
             public string icon;
             public string displayName;
+
+            public Uri ActivationUri;
         }
 
         public static string Location
