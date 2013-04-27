@@ -42,6 +42,9 @@
     <Compile Include="ApplicationDeployment.API.cs" />
     <Compile Include="ApplicationDeployment.cs" />
     <Compile Include="Delegates.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="HostingManager.cs" />
+    <None Include="Loading.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

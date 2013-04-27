@@ -22,10 +22,18 @@ namespace ClickMac
         private static void Main(string[] args)
         {
             Environment.CurrentDirectory = Path.GetDirectoryName(Location);
-            if (args.Length > 1 && args[0] == "-o")
+            if (args.Length >= 1 && args[0] == "-associate")
             {
+                Loading.ReadManifest(Platform.GetLocalManifest(args[1]));
+                return;
+            }
+            else if (args.Length > 1 && args[0] == "-o")
+            {
+                args[1] = new FileInfo(args[1]).FullName; // This is stupid and redudant.  
+                // But it stops windows throwing around stupid 8.3 names, which break EVERYTHING! :/
+                // RANT: Why the hell did Windows 8 even give me an 8.3 name in the first place?
                 LoadUnknownFile(args[1]);
-                args = args.Skip(1).ToArray();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+                args = args.Skip(1).ToArray();
             }
             else if (args.Length > 0 && File.Exists(args[0]))
             {
@@ -61,20 +69,18 @@ namespace ClickMac
             }
             if (!String.IsNullOrWhiteSpace(entry.executable))
             {
-                //var name = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames().FirstOrDefault(r => r.EndsWith("System.Deployment.dll"));
-                //using (System.IO.Stream manifestResourceStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(name))
-                //{
-                //    byte[] array = new byte[manifestResourceStream.Length];
-                //    manifestResourceStream.Read(array, 0, array.Length);
-                //    File.WriteAllBytes(Path.Combine(entry.folder, "System.Deployment.dll"), array);
-                //}
                 Environment.SetEnvironmentVariable("ClickOnceAppVersion", entry.version);
                 if (InternalLaunch)
                 {
                     try
                     {
                         FileInfo targetFile = new FileInfo(Path.Combine(entry.folder, entry.executable));
-                        Kamahl.Deployment.ApplicationDeployment.CurrentDeployment = new Kamahl.Deployment.ApplicationDeployment(entry.ActivationUri, new Version(entry.version));
+                        // No direct referecnes are ever made between the loader and the API.  
+                        // This means applications may use outdated DLLs without the CLR loading two seperate instances
+                        // And therefore not communicating properly.
+                        AppDomain.CurrentDomain.SetData("Kamahl.Deployment.Deployed", true);  
+                        AppDomain.CurrentDomain.SetData("Kamahl.Deployment.ActivationUri", new Uri(entry.DeploymentProviderUrl));
+                        AppDomain.CurrentDomain.SetData("Kamahl.Deployment.Version", new Version(entry.version));
                         var Target = Assembly.LoadFile(targetFile.FullName);
                         if (Target.EntryPoint.GetParameters().Length == 0)
                             Target.EntryPoint.Invoke(null, null);
@@ -160,7 +166,7 @@ namespace ClickMac
             catch (WebException)
             { }
             catch (IOException) 
-            { }
+            { } // Chances are, we just updated, and clickmac.old.exe is still running.
             return false;
 
         }
@@ -192,7 +198,6 @@ namespace ClickMac
             public string icon;
             public string displayName;
 
-            public Uri ActivationUri;
         }
 
         public static string Location

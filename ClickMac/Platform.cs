@@ -1,8 +1,10 @@
 ﻿using PlistCS;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace ClickMac
@@ -41,41 +43,90 @@ namespace ClickMac
             if (File.Exists(infoPlist)) // OSX is the only one who cares about plists.
                 AssociateFileExtMac(fa, ext);
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-                AssociateFileExtWin32(fa, ext);
+            {
+                try
+                {
+                    AssociateFileExtWin32(fa, ext);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Console.WriteLine("Cannot write to Registry.  Elevating.");
+                    DoElevate(fa, ext);
+                }
+            }
             AssociateInternal(fa);
+        }
+
+        private static void DoElevate(XEleDict fa, string ext)
+        {
+            File.WriteAllText("assoc.xml", fa.inner.ToString());
+                Process process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = Assembly.GetEntryAssembly().Location,
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    Arguments = String.Format("-associate {0}", Program.entry.DeploymentProviderUrl)
+                });
+                if (process != null)
+                {
+                    process.WaitForExit();
+                }
         }
 
         private static void AssociateInternal(XEleDict fa)
         {
             Dictionary<string, string> data;
             if (File.Exists("assocs.plist"))
-                data = (Dictionary<string, string>)Plist.readPlist("assocs.plist");
+                data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
             else
                 data = new Dictionary<string, string>();
             data[fa["extension"]] = Program.entry.DeploymentProviderUrl;
             Plist.writeXml(data, "assocs.plist");
         }
 
+        private static Dictionary<string, string> ConvertPlistToStringDict(Dictionary<string, object> dictionary)
+        {
+            var ret = new Dictionary<string, string>();
+            foreach (var item in dictionary)
+            {
+                ret.Add(item.Key, item.Value.ToString());
+            }
+            return ret;
+        }
+        
         private static void AssociateFileExtWin32(XEleDict fa, string ext)
         {
             ext = "." + ext;
             var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
             if (key == null)
                 DoWin32Assoc(fa, ext);
+            key = key.OpenSubKey("OpenWithProgIds");
+            if (key == null)
+                DoWin32Assoc(fa, ext);
+            else if (!key.GetValueNames().Contains(fa["progid"]))
+                DoWin32Assoc(fa,ext);
             key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(fa["progid"]);
             string[] subs = new string[] { "shell", "open", "command" };
             foreach (var k in subs)
             {
                 if (key == null)
+                {
                     DoWin32Assoc2(fa);
+                    return; 
+                }
                 key = key.OpenSubKey(k);
             }
+            var expected = String.Format("{0} -o %1", Program.Location);
+            if ((string)key.GetValue("", "") != expected)
+                DoWin32Assoc2(fa);
         }
 
         private static void DoWin32Assoc(XEleDict fa, string ext)
         {
             var key = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(ext);
             key.SetValue("", fa["progid"], Microsoft.Win32.RegistryValueKind.String);
+            key = key.CreateSubKey("OpenWithProgids");
+            key.SetValue(fa["progid"], "");
         }
         private static void DoWin32Assoc2(XEleDict fa)
         {
@@ -124,12 +175,17 @@ namespace ClickMac
                 var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
                 key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey((string)key.GetValue(""));
                 var manifest = (string)key.GetValue("DeploymentProviderUrl");
-                var localmanifest = Path.Combine(Path.GetDirectoryName(Program.Location), Path.GetFileName(manifest));
-                if (File.Exists(localmanifest))
-                    return localmanifest;
-                return manifest;
+                return GetLocalManifest(manifest);
             }
             return null;
+        }
+
+        public static string GetLocalManifest(string manifest)
+        {
+            var localmanifest = Path.Combine(Path.GetDirectoryName(Program.Location), Path.GetFileName(manifest));
+            if (File.Exists(localmanifest))
+                return localmanifest;
+            return manifest;
         }
     }
 }
