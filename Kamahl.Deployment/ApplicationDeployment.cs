@@ -5,10 +5,24 @@ using System.Text;
 
 namespace Kamahl.Deployment
 {
-    partial class ApplicationDeployment // : IApplicationDeployment
+    public partial class ApplicationDeployment // : IApplicationDeployment
     {
+        private static ApplicationDeployment _current = null;
         /// <summary>Returns the current <see cref="T:Kamahl.Deployment.ApplicationDeployment" /> for this deployment.</summary>
-        public static ApplicationDeployment CurrentDeployment { get; internal set; }
+        public static ApplicationDeployment CurrentDeployment
+        {
+            get
+            {
+                if (_current == null)
+                {
+                    var ad = AppDomain.CurrentDomain;
+                    if (ad.GetData<bool>("Kamahl.Deployment.Deployed") == false)
+                        return null;
+                    _current = new ApplicationDeployment(ad.GetData<Uri>("Kamahl.Deployment.ActivationUri"), ad.GetData<Version>("Kamahl.Deployment.Version"));
+                }
+                return _current;
+            }
+        }
         /// <summary> Gets a value indicating whether the current application is a ClickOnce application. </summary>
         public static bool IsNetworkDeployed { get { return CurrentDeployment != null; } }
 

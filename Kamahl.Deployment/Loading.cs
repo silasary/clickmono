@@ -6,10 +6,16 @@ using System.Net;
 using System.Text;
 using System.Xml.Linq;
 
-namespace ClickMac
+namespace Kamahl.Deployment
 {
     class Loading
     {
+        private HostingManager Manager;
+        
+        public Loading(HostingManager manager)
+        {
+            this.Manager = manager;
+        }
         enum ns { asmv1, asmv2, asmv3, cov1, cov2, dsig }
         private static XName xname(string localName, ns Ns)
         {
@@ -43,28 +49,26 @@ namespace ClickMac
         }
         public static string FixFileSeperator(string path)
         {
-            if (String.IsNullOrEmpty(path))
-                return path;
             return path.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
         }
 
 
-        public static void ReadManifest(string manifest)
+        public void ReadManifest(string manifest)
         {
             var doc = XDocument.Load(manifest);
             var deployment = doc.Root.Element(xname("deployment", ns.asmv2));
             var provider = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
-            Program.entry.DeploymentProviderUrl = provider;
+            
             XDocument newManifest = null;
             try
             {
-                Console.WriteLine("Getting manifest from {0}", provider);
-                newManifest = XDocument.Load(new WebClient().OpenRead(provider));
+                Manager.Info("Getting manifest from {0}", provider);
+                newManifest = XDocument.Load(new WebClient().DownloadString(provider));
                 newManifest.Save(newManifest.Root.Element(xname("assemblyIdentity", ns.asmv1)).Attribute("name").Value);
             }
             catch (WebException)
             {
-                Console.WriteLine("Getting manifest failed. Starting in Offline Mode");
+                Manager.Info("Getting manifest failed. Starting in Offline Mode");
                 newManifest = XDocument.Load(manifest);
             }
             LoadManifest(newManifest);
@@ -89,7 +93,7 @@ namespace ClickMac
             var assemblyIdentity = dependentAssembly.Element(xname("assemblyIdentity", ns.asmv2));
             string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
             Directory.CreateDirectory(version);
-            string filename = Path.Combine(".", version, Path.GetFileName(codebase));
+            string filename = Path.Combine(version, Path.GetFileName(codebase));
             bool downloaded = false;
             if (File.Exists(filename))
             {
