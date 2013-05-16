@@ -173,6 +173,8 @@ namespace ClickMac
 
             string name = file.Attribute("name").Value;
             string filename = Path.Combine(copyto, name.Replace('\\', Path.DirectorySeparatorChar));
+            if (!Directory.Exists(Path.GetDirectoryName(filename)))
+                Directory.CreateDirectory(Path.GetDirectoryName(filename));
             Console.WriteLine("Getting {0}", filename);
             bool downloaded = false;
             if (File.Exists(filename))

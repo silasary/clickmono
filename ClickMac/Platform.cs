@@ -60,17 +60,17 @@ namespace ClickMac
         private static void DoElevate(XEleDict fa, string ext)
         {
             File.WriteAllText("assoc.xml", fa.inner.ToString());
-                Process process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = Assembly.GetEntryAssembly().Location,
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    Arguments = String.Format("-associate {0}", Program.entry.DeploymentProviderUrl)
-                });
-                if (process != null)
-                {
-                    process.WaitForExit();
-                }
+            Process process = Process.Start(new ProcessStartInfo
+            {
+                FileName = Assembly.GetEntryAssembly().Location,
+                UseShellExecute = true,
+                Verb = "runas",
+                Arguments = String.Format("-associate {0}", Program.entry.DeploymentProviderUrl)
+            });
+            if (process != null)
+            {
+                process.WaitForExit();
+            }
         }
 
         private static void AssociateInternal(XEleDict fa)
@@ -116,7 +116,7 @@ namespace ClickMac
                 }
                 key = key.OpenSubKey(k);
             }
-            var expected = String.Format("{0} -o %1", Program.Location);
+            var expected = String.Format("{0} -o \"%1\"", Program.Location);
             if ((string)key.GetValue("", "") != expected)
                 DoWin32Assoc2(fa);
         }
@@ -136,7 +136,7 @@ namespace ClickMac
             string[] subs = new string[] { "shell", "open", "command" };
             foreach (var k in subs)
                 key = key.CreateSubKey(k);
-            key.SetValue("", String.Format("{0} -o %1", Program.Location));
+            key.SetValue("", String.Format("{0} -o \"%1\"", Program.Location));
         }
 
         private static void AssociateFileExtMac(XEleDict fa, string ext)

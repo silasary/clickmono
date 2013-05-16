@@ -34,6 +34,11 @@ namespace ClickMac
                 // RANT: Why the hell did Windows 8 even give me an 8.3 name in the first place?
                 LoadUnknownFile(args[1]);
                 args = args.Skip(1).ToArray();
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i].Contains(' '))
+                        args[i] = String.Format("\"{0}\"", args[i]);
+                }
             }
             else if (args.Length > 0 && File.Exists(args[0]))
             {
@@ -70,6 +75,8 @@ namespace ClickMac
             if (!String.IsNullOrWhiteSpace(entry.executable))
             {
                 Environment.SetEnvironmentVariable("ClickOnceAppVersion", entry.version);
+                if (Environment.CurrentDirectory == Path.GetDirectoryName(Location))
+                    Environment.CurrentDirectory = entry.folder;
                 if (InternalLaunch)
                 {
                     try
@@ -89,8 +96,11 @@ namespace ClickMac
                     }
                     catch (Exception v)
                     {
+                        GC.Collect();
                         Console.WriteLine(v.ToString());
                         Launch(args);
+                        Console.CancelKeyPress += Console_CancelKeyPress;
+                        process.WaitForExit();
                     }
                 }
                 else
@@ -138,10 +148,13 @@ namespace ClickMac
         {
             if (Debugger.IsAttached && args != null)
                 return false;
+            Environment.CurrentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             try
             {
                 if (File.Exists("ClickMac.old.exe"))
                     File.Delete("ClickMac.old.exe");
+                if (File.Exists("Kamahl.Deployment.dll.old"))
+                    File.Delete("Kamahl.Deployment.dll.old");
                 if (!File.Exists("ClickMac.application"))
                     File.WriteAllText("ClickMac.application", "<?xml version=\"1.0\" encoding=\"utf-8\"?><asmv1:assembly xsi:schemaLocation=\"urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd\" manifestVersion=\"1.0\" xmlns:asmv1=\"urn:schemas-microsoft-com:asm.v1\" xmlns=\"urn:schemas-microsoft-com:asm.v2\" xmlns:asmv2=\"urn:schemas-microsoft-com:asm.v2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ><assemblyIdentity name=\"ClickMac.application\" version=\"1.0.0.0\" publicKeyToken=\"3ff3731db18bf4c7\" language=\"neutral\" processorArchitecture=\"msil\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><description asmv2:publisher=\"ClickMac\" asmv2:product=\"ClickMac\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><deployment install=\"true\" mapFileExtensions=\"true\"><subscription><update><beforeApplicationStartup /></update></subscription><deploymentProvider codebase=\"https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application\" /></deployment></asmv1:assembly>");
                 entry = new EntryPoint();
@@ -151,9 +164,15 @@ namespace ClickMac
                 if (!File.Exists("ClickMac.version") || entry.version != File.ReadAllText("ClickMac.version"))
                 {
                     var loc = Assembly.GetExecutingAssembly().Location;
+                    var deploc = Path.Combine(Path.GetDirectoryName(loc), "Kamahl.Deployment.dll");
                     File.Move(loc, "ClickMac.old.exe");
+                    if (File.Exists(deploc))
+                        File.Move(deploc, "Kamahl.Deployment.dll.old");
                     File.Copy(Path.Combine(entry.folder, entry.executable), loc);
+                    if (File.Exists(Path.Combine(entry.folder, "Kamahl.Deployment.dll")))
+                        File.Copy(Path.Combine(entry.folder, "Kamahl.Deployment.dll"), deploc);
                     File.WriteAllText("ClickMac.version", entry.version);
+                    Console.WriteLine("Updated {0} to version {1}", Path.GetFileName(loc), entry.version);
                     if (args != null)
                     {
                         var Updated = Assembly.LoadFile(loc);
