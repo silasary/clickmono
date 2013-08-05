@@ -81,7 +81,12 @@ namespace ClickMac
             else
                 data = new Dictionary<string, string>();
             data[fa["extension"]] = Program.entry.DeploymentProviderUrl;
-            Plist.writeXml(data, "assocs.plist");
+            try
+            {
+                Plist.writeXml(data, "assocs.plist");
+            }
+            catch (IOException)
+            { }
         }
 
         private static Dictionary<string, string> ConvertPlistToStringDict(Dictionary<string, object> dictionary)
@@ -99,7 +104,10 @@ namespace ClickMac
             ext = "." + ext;
             var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
             if (key == null)
+            {
                 DoWin32Assoc(fa, ext);
+                key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
+            }
             key = key.OpenSubKey("OpenWithProgIds");
             if (key == null)
                 DoWin32Assoc(fa, ext);
@@ -170,13 +178,27 @@ namespace ClickMac
 
         internal static string GetManifestForExt(string ext)
         {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            try
             {
-                var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
-                key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey((string)key.GetValue(""));
-                var manifest = (string)key.GetValue("DeploymentProviderUrl");
-                return GetLocalManifest(manifest);
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                {
+                    var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
+                    key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey((string)key.GetValue(""));
+                    var manifest = (string)key.GetValue("DeploymentProviderUrl");
+                    return GetLocalManifest(manifest);
+                }
             }
+            catch (Exception) { }
+            try
+            {
+                Dictionary<string, string> data;
+            if (File.Exists("assocs.plist"))
+                data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
+            else
+                data = new Dictionary<string, string>();
+            return GetLocalManifest(data[ext]);
+            }
+            catch (Exception) { }
             return null;
         }
 
