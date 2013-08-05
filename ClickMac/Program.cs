@@ -82,6 +82,7 @@ namespace ClickMac
                     try
                     {
                         FileInfo targetFile = new FileInfo(Path.Combine(entry.folder, entry.executable));
+                        Console.WriteLine("Launching from {0}", targetFile.FullName);
                         // No direct referecnes are ever made between the loader and the API.  
                         // This means applications may use outdated DLLs without the CLR loading two seperate instances
                         // And therefore not communicating properly.

@@ -89,6 +89,17 @@ namespace ClickMac
             var assemblyIdentity = dependentAssembly.Element(xname("assemblyIdentity", ns.asmv2));
             string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
             Directory.CreateDirectory(version);
+            try
+            {
+                foreach (var deploy in Directory.EnumerateFiles(version, "*.deploy", SearchOption.AllDirectories))
+                {
+                    var dest = deploy.Substring(0, deploy.Length - ".deploy".Length);
+                    if (File.Exists(dest))
+                        File.Delete(dest);
+                    File.Move(deploy, dest);
+                }
+            }
+            catch (IOException) { }
             string filename = Path.Combine(".", version, Path.GetFileName(codebase));
             bool downloaded = false;
             if (File.Exists(filename))
@@ -184,7 +195,7 @@ namespace ClickMac
                     downloaded = true;
                 }
                 else
-                    File.Delete(filename);
+                    File.Move(filename, filename + "._");
             }
             if (!downloaded)
             {
@@ -195,8 +206,23 @@ namespace ClickMac
                 }
                 catch (WebException)
                 {
-                    new WebClient().DownloadFile(path + "/" + name.Replace('\\', '/') + ".deploy", filename);
+                    try
+                    {
+                        new WebClient().DownloadFile(path + "/" + name.Replace('\\', '/') + ".deploy", filename);
+                    }
+                    catch (WebException)
+                    {
+                        if (File.Exists(filename + "._"))
+                            File.Move(filename + "._", filename);
+                        else
+                        {
+                            Console.WriteLine("\tFailed to download!  Application might not work.");
+                            return;
+                        }
+                    }
                 }
+                if (File.Exists(filename + "._"))
+                    File.Delete(filename + "._");
             }
         }
 
