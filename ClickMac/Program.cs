@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kamahl.Common;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -60,8 +61,11 @@ namespace ClickMac
                     Loading.ReadManifest(pref);
                 else
                 {
-                    Console.WriteLine("Could not find an .application file.  Aborting.");
-                    return;
+                    if (!GetManifestFromName(Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location)))
+                    {
+                        Console.WriteLine("Could not find an .application file.  Aborting.");
+                        return;
+                    }
                 }
             }
             if (File.Exists(infoPlist))
@@ -113,6 +117,20 @@ namespace ClickMac
             }
             if (CheckForSelfUpdate(null))
                 return;
+        }
+
+        private static bool GetManifestFromName(string p)
+        {
+            Dictionary<string, string> manifests = null;
+            try
+            {
+                manifests = Serialization.LoadFromJson<Dictionary<string, string>>(new WebClient().DownloadString("https://dl.dropboxusercontent.com/u/4187827/ClickOnce/manifests.txt"));
+            }
+            catch (WebException) { return false; }
+            if (!manifests.ContainsKey(p))
+                return false;
+            Loading.ReadManifest(manifests[p]);
+            return true;
         }
 
         private static void Launch(string[] args)
