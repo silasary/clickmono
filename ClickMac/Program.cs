@@ -83,9 +83,10 @@ namespace ClickMac
                     Environment.CurrentDirectory = entry.folder;
                 if (InternalLaunch)
                 {
+                    var lauchTime = DateTime.Now;
                     try
                     {
-                        FileInfo targetFile = new FileInfo(Path.Combine(entry.folder, entry.executable));
+                        FileInfo targetFile = new FileInfo(entry.executable);
                         Console.WriteLine("Launching from {0}", targetFile.FullName);
                         // No direct referecnes are ever made between the loader and the API.  
                         // This means applications may use outdated DLLs without the CLR loading two seperate instances
@@ -103,9 +104,12 @@ namespace ClickMac
                     {
                         GC.Collect();
                         Console.WriteLine(v.ToString());
-                        Launch(args);
-                        Console.CancelKeyPress += Console_CancelKeyPress;
-                        process.WaitForExit();
+                        if (DateTime.Now.Subtract(lauchTime).TotalSeconds < 10)
+                        {
+                            Launch(args);
+                            Console.CancelKeyPress += Console_CancelKeyPress;
+                            process.WaitForExit();
+                        }
                     }
                 }
                 else
