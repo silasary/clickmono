@@ -8,8 +8,12 @@ using System.Xml.Linq;
 
 namespace ClickMac
 {
-    class Loading
+    static class Loading
     {
+        public delegate void log(string s, params object[] args);
+        public static log Log;
+        public static EntryPoint entry = new EntryPoint();
+
         enum ns { asmv1, asmv2, asmv3, cov1, cov2, dsig }
         private static XName xname(string localName, ns Ns)
         {
@@ -54,17 +58,17 @@ namespace ClickMac
             var doc = XDocument.Load(manifest);
             var deployment = doc.Root.Element(xname("deployment", ns.asmv2));
             var provider = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
-            Program.entry.DeploymentProviderUrl = provider;
+            entry.DeploymentProviderUrl = provider;
             XDocument newManifest = null;
             try
             {
-                Console.WriteLine("Getting manifest from {0}", provider);
+                Log("Getting manifest from {0}", provider);
                 newManifest = XDocument.Load(new WebClient().OpenRead(provider));
                 newManifest.Save(newManifest.Root.Element(xname("assemblyIdentity", ns.asmv1)).Attribute("name").Value);
             }
             catch (WebException)
             {
-                Console.WriteLine("Getting manifest failed. Starting in Offline Mode");
+                Log("Getting manifest failed. Starting in Offline Mode");
                 newManifest = XDocument.Load(manifest);
             }
             LoadManifest(newManifest);
@@ -115,7 +119,7 @@ namespace ClickMac
             {
                 try
                 {
-                    Console.WriteLine("Getting Dependancy {0}", codebase);
+                    Log("Getting Dependancy {0}", codebase);
                     new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
                 }
                 catch (WebException)
@@ -130,7 +134,7 @@ namespace ClickMac
                             File.Move(filename + "._", filename);
                         else
                         {
-                            Console.WriteLine("\tFailed to download!  Application might not work.");
+                            Log("\tFailed to download!  Application might not work.");
                             return;
                         }
                     }
@@ -157,10 +161,10 @@ namespace ClickMac
                 if (entryPoint != null)
                 {
                     
-                       Program.entry.executable = entryPoint.Element(xname("commandLine", ns.asmv2)).Attribute("file").Value;
-                       Program.entry.folder = copyto ?? version;
-                       Program.entry.version = assemblyIdentity.Attribute("version").Value;
-                       Program.entry.displayName = entryPoint.Element(xname("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
+                       entry.executable = entryPoint.Element(xname("commandLine", ns.asmv2)).Attribute("file").Value;
+                       entry.folder = copyto ?? version;
+                       entry.version = assemblyIdentity.Attribute("version").Value;
+                       entry.displayName = entryPoint.Element(xname("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
                 }
                 var description = manifest.Root.Element(xname("description", ns.asmv1));
                 if (description != null)
@@ -168,7 +172,7 @@ namespace ClickMac
                     string iconFile = description.Attribute(xname("iconFile", ns.asmv2)).Value;
                     if (File.Exists(Path.Combine(copyto ?? version, iconFile)))
                     {
-                        Program.entry.icon = Path.Combine(copyto ?? version, iconFile);
+                        entry.icon = Path.Combine(copyto ?? version, iconFile);
                     }
                 }
 
@@ -216,7 +220,7 @@ namespace ClickMac
                             File.Move(filename + "._", filename);
                         else
                         {
-                            Console.WriteLine("\tFailed to download!  Application might not work.");
+                            Log("\tFailed to download!  Application might not work.");
                             return;
                         }
                     }
@@ -224,6 +228,17 @@ namespace ClickMac
                 if (File.Exists(filename + "._"))
                     File.Delete(filename + "._");
             }
+        }
+
+        public class EntryPoint
+        {
+            public string DeploymentProviderUrl;
+
+            public string executable;
+            public string folder;
+            public string version;
+            public string icon;
+            public string displayName;
         }
 
 

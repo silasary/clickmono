@@ -11,7 +11,7 @@ namespace ClickMac
 {
     class Platform
     {
-        static string infoPlist { get { return Program.infoPlist; } }
+        static string infoPlist { get { return ProgramConsole.infoPlist; } }
 
         #region docs
         /*
@@ -65,7 +65,7 @@ namespace ClickMac
                 FileName = Assembly.GetEntryAssembly().Location,
                 UseShellExecute = true,
                 Verb = "runas",
-                Arguments = String.Format("-associate {0}", Program.entry.DeploymentProviderUrl)
+                Arguments = String.Format("-associate {0}", Loading.entry.DeploymentProviderUrl)
             });
             if (process != null)
             {
@@ -80,7 +80,7 @@ namespace ClickMac
                 data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
             else
                 data = new Dictionary<string, string>();
-            data[fa["extension"]] = Program.entry.DeploymentProviderUrl;
+            data[fa["extension"]] = Loading.entry.DeploymentProviderUrl;
             try
             {
                 Plist.writeXml(data, "assocs.plist");
@@ -124,7 +124,7 @@ namespace ClickMac
                 }
                 key = key.OpenSubKey(k);
             }
-            var expected = String.Format("{0} -o \"%1\"", Program.Location);
+            var expected = String.Format("{0} -o \"%1\"", ProgramConsole.Location);
             if ((string)key.GetValue("", "") != expected)
                 DoWin32Assoc2(fa);
         }
@@ -140,11 +140,11 @@ namespace ClickMac
         {
             var key = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(fa["progid"]);
             key.SetValue("", fa["description"], Microsoft.Win32.RegistryValueKind.String);
-            key.SetValue("DeploymentProviderUrl", Program.entry.DeploymentProviderUrl);
+            key.SetValue("DeploymentProviderUrl", Loading.entry.DeploymentProviderUrl);
             string[] subs = new string[] { "shell", "open", "command" };
             foreach (var k in subs)
                 key = key.CreateSubKey(k);
-            key.SetValue("", String.Format("{0} -o \"%1\"", Program.Location));
+            key.SetValue("", String.Format("{0} -o \"%1\"", ProgramConsole.Location));
         }
 
         private static void AssociateFileExtMac(XEleDict fa, string ext)
@@ -204,7 +204,7 @@ namespace ClickMac
 
         public static string GetLocalManifest(string manifest)
         {
-            var localmanifest = Path.Combine(Path.GetDirectoryName(Program.Location), Path.GetFileName(manifest));
+            var localmanifest = Path.Combine(Path.GetDirectoryName(ProgramConsole.Location), Path.GetFileName(manifest));
             if (File.Exists(localmanifest))
                 return localmanifest;
             return manifest;
