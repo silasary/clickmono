@@ -80,11 +80,11 @@ namespace Kamahl.Deployment
             string path = getUrlFolder(deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value);
             foreach (var dependency in manifest.Root.Elements(xname("dependency", ns.asmv2)))
             {
-                ProcessDependancy(dependency, path, null);
+                ProcessDependency(dependency, path, null);
             }
         }
 
-        private static void ProcessDependancy(XElement dependency, string path, string copyto)
+        private static void ProcessDependency(XElement dependency, string path, string copyto)
         {
             var dependentAssembly = dependency.Element(xname("dependentAssembly", ns.asmv2));
             if (dependentAssembly == null || dependentAssembly.Attribute("dependencyType").Value != "install")
@@ -108,7 +108,7 @@ namespace Kamahl.Deployment
             {
                 try
                 {
-                    Console.WriteLine("Getting Dependancy {0}", codebase);
+                    Console.WriteLine("Getting Dependency {0}", codebase);
                     new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
                 }
                 catch (WebException)
@@ -134,9 +134,9 @@ namespace Kamahl.Deployment
             if (Path.GetExtension(codebase) == ".manifest")
             {
                 var manifest = XDocument.Load(Path.Combine(".", version, Path.GetFileName(codebase)));
-                foreach (var dependancy in manifest.Root.Elements(xname("dependency", ns.asmv2)))
+                foreach (var Dependency in manifest.Root.Elements(xname("dependency", ns.asmv2)))
                 {
-                    ProcessDependancy(dependancy, getUrlFolder(path + "/" + codebase.Replace('\\', '/')), copyto ?? version);
+                    ProcessDependency(Dependency, getUrlFolder(path + "/" + codebase.Replace('\\', '/')), copyto ?? version);
                 }
                 foreach (var file in manifest.Root.Elements(xname("file", ns.asmv2)))
                 {
