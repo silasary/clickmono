@@ -1,5 +1,4 @@
-﻿using Kamahl.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -21,6 +20,7 @@ namespace ClickMac
 
         private static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             Loading.Log = Console.WriteLine;
             Environment.CurrentDirectory = Path.GetDirectoryName(Location);
             if (PreLoading.DoArgs(ref args) == true)
@@ -80,6 +80,12 @@ namespace ClickMac
             }
             if (CheckForSelfUpdate(null))
                 return;
+        }
+
+        static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            Console.WriteLine("Failed to Load '{0}'", args.Name);
+            return null;
         }
 
 

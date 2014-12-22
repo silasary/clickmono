@@ -1,4 +1,4 @@
-﻿using Kamahl.Common;
+﻿//using Kamahl.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -72,7 +72,8 @@ namespace ClickMac
             Dictionary<string, string> manifests = null;
             try
             {
-                manifests = Serialization.LoadFromJson<Dictionary<string, string>>(new WebClient().DownloadString("https://dl.dropboxusercontent.com/u/4187827/ClickOnce/manifests.txt"));
+                return false;
+                //manifests = Serialization.LoadFromJson<Dictionary<string, string>>(new WebClient().DownloadString("https://dl.dropboxusercontent.com/u/4187827/ClickOnce/manifests.txt"));
             }
             catch (WebException) { return false; }
             if (!manifests.ContainsKey(p))
