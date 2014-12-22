@@ -89,7 +89,7 @@ namespace ClickMac
             var dependentAssembly = dependency.Element(xname("dependentAssembly", ns.asmv2));
             if (dependentAssembly == null || dependentAssembly.Attribute("dependencyType").Value != "install")
                 return;
-            var codebase = dependentAssembly.Attribute("codebase").Value;
+            var codebase = FixFileSeperator(dependentAssembly.Attribute("codebase").Value);
             var assemblyIdentity = dependentAssembly.Element(xname("assemblyIdentity", ns.asmv2));
             string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
             Directory.CreateDirectory(version);

@@ -40,6 +40,7 @@ namespace ClickMac
                     Environment.CurrentDirectory = Loading.entry.folder;
                 if (InternalLaunch)
                 {
+                    #region InternalLaunchCode
                     var lauchTime = DateTime.Now;
                     try
                     {
@@ -68,6 +69,7 @@ namespace ClickMac
                             process.WaitForExit();
                         }
                     }
+                    #endregion
                 }
                 else
                 {
