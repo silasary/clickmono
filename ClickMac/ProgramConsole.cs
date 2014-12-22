@@ -93,9 +93,10 @@ namespace ClickMac
 
         private static void Launch(string[] args)
         {
+            //Console.WriteLine("Launching '{0}' from {1}", Loading.entry.executable, Environment.CurrentDirectory);
             try
             {
-                process = Process.Start(new ProcessStartInfo(Path.Combine(Loading.entry.folder, Loading.entry.executable), String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
+                process = Process.Start(new ProcessStartInfo(Loading.entry.executable, String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
                 process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
                 process.BeginOutputReadLine();
             }
@@ -103,7 +104,7 @@ namespace ClickMac
             {
                 try
                 {
-                    process = Process.Start(new ProcessStartInfo("mono", String.Format("{0} {1}", Path.Combine(Loading.entry.folder, Loading.entry.executable), String.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
+                    process = Process.Start(new ProcessStartInfo("mono", String.Format("{0} {1}", Loading.entry.executable, String.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
                     process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
                     process.BeginOutputReadLine();
                 }
@@ -111,11 +112,11 @@ namespace ClickMac
                 {
                     try
                     {
-                        process = Process.Start(new ProcessStartInfo("mono", Path.Combine(Loading.entry.folder, Loading.entry.executable)) { UseShellExecute = true });
+                        process = Process.Start(new ProcessStartInfo("mono", Loading.entry.executable) { UseShellExecute = true });
                     }
                     catch (Win32Exception)
                     {
-                        process = Process.Start(new ProcessStartInfo(Path.Combine(Loading.entry.folder, Loading.entry.executable)) { UseShellExecute = true });
+                        process = Process.Start(new ProcessStartInfo(Loading.entry.executable) { UseShellExecute = true });
                     }
                 }
             }
