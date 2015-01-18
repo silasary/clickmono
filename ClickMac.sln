@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickMac", "ClickMac\ClickMac.csproj", "{C42723D7-32EB-412E-BFAF-DFF620204044}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kamahl.Deployment", "Kamahl.Deployment\Kamahl.Deployment.csproj", "{A5A85E56-4992-4BE9-BB6D-8C3DED23482D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickOnce", "ClickOnce\ClickOnce.csproj", "{2F9B6084-9216-4C38-A436-F447A49BE0D6}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,14 +13,6 @@ Global
 		{C42723D7-32EB-412E-BFAF-DFF620204044}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C42723D7-32EB-412E-BFAF-DFF620204044}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C42723D7-32EB-412E-BFAF-DFF620204044}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A5A85E56-4992-4BE9-BB6D-8C3DED23482D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A5A85E56-4992-4BE9-BB6D-8C3DED23482D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A5A85E56-4992-4BE9-BB6D-8C3DED23482D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A5A85E56-4992-4BE9-BB6D-8C3DED23482D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F9B6084-9216-4C38-A436-F447A49BE0D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F9B6084-9216-4C38-A436-F447A49BE0D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F9B6084-9216-4C38-A436-F447A49BE0D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F9B6084-9216-4C38-A436-F447A49BE0D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
