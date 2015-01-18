@@ -11,7 +11,8 @@
     <AssemblyName>ClickMac</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <PublishUrl>C:\Users\Katelyn\Dropbox\Public\ClickOnce\</PublishUrl>
     <Install>true</Install>
@@ -117,12 +118,6 @@
       <ProductName>Windows Installer 4.5</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Kamahl.Deployment\Kamahl.Deployment.csproj">
-      <Project>{a5a85e56-4992-4be9-bb6d-8c3ded23482d}</Project>
-      <Name>Kamahl.Deployment</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
