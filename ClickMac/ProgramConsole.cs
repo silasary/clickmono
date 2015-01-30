@@ -23,6 +23,7 @@ namespace ClickMac
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             Loading.Log = Console.WriteLine;
             Environment.CurrentDirectory = Path.GetDirectoryName(Location);
+            Console.WriteLine("Running on {0}", Platform.GetPlatform( ));
             if (PreLoading.DoArgs(ref args) == true)
                 return;
             if (File.Exists(infoPlist))

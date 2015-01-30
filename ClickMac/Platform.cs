@@ -209,5 +209,25 @@ namespace ClickMac
                 return localmanifest;
             return manifest;
         }
+
+        public static OperatingSystem GetPlatform()
+        {
+            switch (Environment.OSVersion.Platform) {
+
+                case PlatformID.Unix:
+                    if (System.IO.Directory.Exists ("/Library"))
+                        return new OperatingSystem (PlatformID.MacOSX, Environment.OSVersion.Version);
+                    else
+                        return Environment.OSVersion;
+                    break;
+
+                case PlatformID.MacOSX: // Wow, they actually got it!
+                case PlatformID.Win32NT:
+                default:
+                    return Environment.OSVersion;
+
+            }
+        }
+
     }
 }
