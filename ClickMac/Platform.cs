@@ -222,11 +222,28 @@ namespace ClickMac
                     break;
 
                 case PlatformID.MacOSX: // Wow, they actually got it!
+                                        // Not going to ever get called, because of this code:
+                    // https://github.com/mono/mono/blob/9e396e4022a4eefbcdeeae1d86c03afbf04043b7/mcs/class/corlib/System/Environment.cs#L239
                 case PlatformID.Win32NT:
                 default:
                     return Environment.OSVersion;
 
             }
+        }
+
+        public static string GetLibraryLocation()
+        {
+            var path = Environment.CurrentDirectory; // If all else fails, fall back to Portable Mode.
+            switch (GetPlatform().Platform) {
+                case PlatformID.MacOSX:
+                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "ClickOnce");
+                    break;
+            default:
+
+            break;
+            }
+            Directory.CreateDirectory(path);
+            return path;
         }
 
     }
