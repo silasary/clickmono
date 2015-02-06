@@ -13,6 +13,7 @@ namespace ClickMac
         public delegate void log(string s, params object[] args);
         public static log Log;
         public static EntryPoint entry = new EntryPoint();
+        public static bool PortableMode = false;
 
         enum ns { asmv1, asmv2, asmv3, cov1, cov2, dsig }
         private static XName xname(string localName, ns Ns)
@@ -53,8 +54,11 @@ namespace ClickMac
         }
 
 
-        public static void ReadManifest(string manifest)
+        public static void ReadManifest(string manifest) // Entry Point.  Should never be called from within Loading code.
         {
+            var wd = Environment.CurrentDirectory;
+            if (!Loading.PortableMode)
+                Environment.CurrentDirectory = Platform.GetLibraryLocation( );
             var doc = XDocument.Load(manifest);
             var deployment = doc.Root.Element(xname("deployment", ns.asmv2));
             var provider = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
@@ -72,6 +76,7 @@ namespace ClickMac
                 newManifest = XDocument.Load(manifest);
             }
             LoadManifest(newManifest);
+            Environment.CurrentDirectory = wd;
         }
 
         private static void LoadManifest(XDocument manifest)
@@ -108,7 +113,7 @@ namespace ClickMac
             bool downloaded = false;
             if (File.Exists(filename))
             {
-                if (new FileInfo(filename).Length == int.Parse(dependentAssembly.Attribute("size").Value))
+                if (new FileInfo(filename).Length == int.Parse(dependentAssembly.Attribute("size").Value)) // HACK: Not an actual equality test. (Although it's usually good enough)
                 {
                     downloaded = true;
                 }
@@ -162,7 +167,7 @@ namespace ClickMac
                 {
                     
                        entry.executable = entryPoint.Element(xname("commandLine", ns.asmv2)).Attribute("file").Value;
-                       entry.folder = copyto ?? version;
+                       entry.folder = new DirectoryInfo(copyto ?? version).FullName; // Alsolute reference.
                        entry.version = assemblyIdentity.Attribute("version").Value;
                        entry.displayName = entryPoint.Element(xname("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
                 }
