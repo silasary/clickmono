@@ -29,11 +29,11 @@ namespace ClickMac
             if (File.Exists(infoPlist))
             {
                 dynamic plist = PlistCS.Plist.readPlist(infoPlist);
-                Console.WriteLine("Setting plist icon to '{0}'", Loading.entry.icon);
-                plist["CFBundleIconFile"] = Loading.FixFileSeperator(Loading.entry.icon);
-                plist["CFBundleDisplayName"] = Loading.entry.displayName;
-                PlistCS.Plist.writeXml(plist, infoPlist);
-            }
+                Console.WriteLine("Setting plist icon to '{0}'", Loading.entry.icon);  // If not in Portable Mode, this points to a file somewhere in /Users/Me/Library/ClickOnce. This is not Ideal.
+                plist["CFBundleIconFile"] = Loading.FixFileSeperator(Loading.entry.icon);  // TODO: Check relative Path, and copy Icon into App Bundle if needed. Of course, all of this assumes running on a Mac.
+                plist["CFBundleDisplayName"] = Loading.entry.displayName;                  // PCs will just use the embedded EXE Icon, or not care in the slightest.  Also, They'll probably just end up using 
+                PlistCS.Plist.writeXml(plist, infoPlist);                                  // The Official Clickonce implementation, uunless they're running on 9x, and need Mono+ClickMac.
+            }                                                                              // What do you mean I'm the only person that's ever going to apply to?  But yeah, 9x people can deal with the COMMAND.COM icon.
             if (!String.IsNullOrWhiteSpace(Loading.entry.executable))
             {
                 Environment.SetEnvironmentVariable("ClickOnceAppVersion", Loading.entry.version);
