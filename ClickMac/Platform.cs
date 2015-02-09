@@ -238,6 +238,9 @@ namespace ClickMac
                 case PlatformID.MacOSX:
                     path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "ClickOnce");
                     break;
+                case PlatformID.Win32NT:
+                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ClickMac");
+                    break;
             default:
 
             break;
