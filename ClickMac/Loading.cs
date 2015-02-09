@@ -56,10 +56,11 @@ namespace ClickMac
 
         public static void ReadManifest(string manifest) // Entry Point.  Should never be called from within Loading code.
         {
+            //Console.WriteLine("Loading {0}", manifest);
+            var doc = XDocument.Load(manifest);
             var wd = Environment.CurrentDirectory;
             if (!Loading.PortableMode)
                 Environment.CurrentDirectory = Platform.GetLibraryLocation( );
-            var doc = XDocument.Load(manifest);
             var deployment = doc.Root.Element(xname("deployment", ns.asmv2));
             var provider = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
             entry.DeploymentProviderUrl = provider;
