@@ -13,12 +13,12 @@ namespace ClickMac
     {
         internal static bool DoArgs(ref string[] args)
         {
-            if (args.Length >= 1 && args[0] == "-associate")
+            if (args.Length >= 1 && args[0] == "-associate") // Called by Platform.DoElevate().
             {
                 Loading.ReadManifest(Platform.GetLocalManifest(args[1]));
-                return true; // abort
+                return true; // Abort - We can't accidentally run the app with Elevated Permissions.
             }
-            else if (args.Length > 1 && args[0] == "-o")
+            else if (args.Length > 1 && args[0] == "-o")  // Called by Explorer, when the user double-clicks a file.
             {
                 args[1] = new FileInfo(args[1]).FullName; // This is stupid and redudant.  
                 // But it stops windows throwing around stupid 8.3 names, which break EVERYTHING! :/
@@ -35,7 +35,7 @@ namespace ClickMac
             {
                 if (Path.GetExtension(args[0]).ToLower() != ".application" && Path.GetExtension(args[0]).ToLower() != ".manifest")
                 {
-                    LoadUnknownFile(args[0]);
+                    LoadUnknownFile(args[0]);  // Associated file.  Or they're screwing with us. 
                 }
                 else
                 {
