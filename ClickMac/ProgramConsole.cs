@@ -41,8 +41,9 @@ namespace ClickMac
                     Environment.CurrentDirectory = Loading.entry.folder;
                 if (InternalLaunch)
                 {
+                    Console.WriteLine("Warning!  Using depreciated Internal Launch code");
                     #region InternalLaunchCode
-                    var lauchTime = DateTime.Now;
+                    var launchTime = DateTime.Now;
                     try
                     {
                         FileInfo targetFile = new FileInfo(Loading.entry.executable);
@@ -61,10 +62,10 @@ namespace ClickMac
                     }
                     catch (Exception v)
                     {
-                        GC.Collect();  //Why are we doing this here?
-                                       // At a guess, Internal Launching something that uses Mutex or the like could be hazardous?  Not an issue because we've depreciated the whole thing now anyway.
+                        GC.Collect();  // Why were we doing this here?
+                                       // Not worth figuring out because we've depreciated the whole thing anyway.
                         Console.WriteLine(v.ToString());
-                        if (DateTime.Now.Subtract(lauchTime).TotalSeconds < 10)
+                        if (DateTime.Now.Subtract(launchTime).TotalSeconds < 10)
                         {
                             Launch(args);
                             Console.CancelKeyPress += Console_CancelKeyPress;
