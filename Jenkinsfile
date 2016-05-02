@@ -1,6 +1,7 @@
 node {
     stage 'Clone'
-    git 'https://github.com/silasary/zigzagoon.git'
+    checkout scm
+   
     stage 'Build'
     if (isUnix())
     {
@@ -11,7 +12,8 @@ node {
       bat 'nuget restore'
       bat 'msbuild'
     }
+    
     stage 'Archive'
-    archive 'Fingbot\\bin\\Debug\\'
+    archive ‘**/bin/Debug/‘
 
 }
