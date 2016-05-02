@@ -5,7 +5,8 @@ node {
     stage 'Build'
     if (isUnix())
     {
-
+        sh 'nuget restore'
+        sh 'xbuild'
     }
     else
     {
