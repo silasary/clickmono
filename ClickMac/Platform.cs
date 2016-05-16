@@ -11,7 +11,7 @@ namespace ClickMac
 {
     class Platform
     {
-        static string infoPlist { get { return ProgramConsole.infoPlist; } }
+        static string infoPlist { get { return Program.infoPlist; } }
 
         #region docs
         /*
@@ -124,7 +124,7 @@ namespace ClickMac
                 }
                 key = key.OpenSubKey(k);
             }
-            var expected = String.Format("{0} -o \"%1\"", ProgramConsole.Location);
+            var expected = String.Format("{0} -o \"%1\"", Program.Location);
             if ((string)key.GetValue("", "") != expected)
                 DoWin32Assoc2(fa);
         }
@@ -144,7 +144,7 @@ namespace ClickMac
             string[] subs = new string[] { "shell", "open", "command" };
             foreach (var k in subs)
                 key = key.CreateSubKey(k);
-            key.SetValue("", String.Format("{0} -o \"%1\"", ProgramConsole.Location));
+            key.SetValue("", String.Format("{0} -o \"%1\"", Program.Location));
         }
 
         private static void AssociateFileExtMac(XEleDict fa, string ext)
@@ -204,7 +204,7 @@ namespace ClickMac
 
         public static string GetLocalManifest(string manifest)
         {
-            var localmanifest = Path.Combine(Path.GetDirectoryName(ProgramConsole.Location), Path.GetFileName(manifest));
+            var localmanifest = Path.Combine(Path.GetDirectoryName(Program.Location), Path.GetFileName(manifest));
             if (File.Exists(localmanifest))
                 return localmanifest;
             return manifest;

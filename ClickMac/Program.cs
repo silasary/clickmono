@@ -10,7 +10,7 @@ using System.Xml.Linq;
 
 namespace ClickMac
 {
-    internal static class ProgramConsole
+    internal static class Program
     {
         static Process process;
 
@@ -39,6 +39,7 @@ namespace ClickMac
                 Environment.SetEnvironmentVariable("ClickOnceAppVersion", Loading.entry.version);
                 if (Environment.CurrentDirectory == Path.GetDirectoryName(Location))
                     Environment.CurrentDirectory = Loading.entry.folder;
+                #if AppDomains
                 if (InternalLaunch)
                 {
                     Console.WriteLine("Warning!  Using depreciated Internal Launch code");
@@ -48,7 +49,7 @@ namespace ClickMac
                     {
                         FileInfo targetFile = new FileInfo(Loading.entry.executable);
                         Console.WriteLine("Launching from {0}", targetFile.FullName);
-                        // No direct referecnes are ever made between the loader and the API.  
+                        // No direct references are ever made between the loader and the API.  
                         // This means applications may use outdated DLLs without the CLR loading two seperate instances
                         // And therefore not communicating properly.
                         AppDomain.CurrentDomain.SetData("Kamahl.Deployment.Deployed", true);
@@ -76,10 +77,13 @@ namespace ClickMac
                 }
                 else
                 {
+                #endif
                     Launch(args);
                     Console.CancelKeyPress += Console_CancelKeyPress;
                     process.WaitForExit();
+                #if AppDomains
                 }
+                #endif
             }
             if (CheckForSelfUpdate(null))
                 return;
@@ -127,8 +131,10 @@ namespace ClickMac
 
         private static bool CheckForSelfUpdate(string[] args)
         {
+            #if DEBUG
             if (Debugger.IsAttached && args != null)
                 return false;
+            #endif
             Environment.CurrentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             try
             {
