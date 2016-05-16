@@ -15,7 +15,7 @@ namespace ClickMac
         {
             if (args.Length >= 1 && args[0] == "-associate") // Called by Platform.DoElevate().
             {
-                Loading.ReadManifest(Platform.GetLocalManifest(args[1]));
+                Loading.LoadApplicationManifest(Platform.GetLocalManifest(args[1]));
                 return true; // Abort - We can't accidentally run the app with Elevated Permissions.
             }
             else if (args.Length > 1 && args[0] == "-o")  // Called by Explorer, when the user double-clicks a file.
@@ -39,7 +39,7 @@ namespace ClickMac
                 }
                 else
                 {
-                    Loading.ReadManifest(args[0]);
+                    Loading.LoadApplicationManifest(args[0]);
                     args = args.Skip(1).ToArray();
                 }
             }
@@ -48,7 +48,7 @@ namespace ClickMac
                 var manifests = Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.application");
                 var pref = manifests.FirstOrDefault(x => !Path.GetFileName(x).StartsWith("ClickMac"));
                 if (pref != null)
-                    Loading.ReadManifest(pref);
+                    Loading.LoadApplicationManifest(pref);
                 else
                 {
                     if (!GetManifestFromName(Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location)))
@@ -64,7 +64,7 @@ namespace ClickMac
         private static void LoadUnknownFile(string file)
         {
             var ext = Path.GetExtension(file);
-            Loading.ReadManifest(Platform.GetManifestForExt(ext));
+            Loading.LoadApplicationManifest(Platform.GetManifestForExt(ext));
         }
 
         public static bool GetManifestFromName(string p)
@@ -78,7 +78,7 @@ namespace ClickMac
             catch (WebException) { return false; }
             if (!manifests.ContainsKey(p))
                 return false;
-            Loading.ReadManifest(manifests[p]);
+            Loading.LoadApplicationManifest(manifests[p]);
             return true;
         }
 

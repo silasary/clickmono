@@ -54,7 +54,7 @@ namespace ClickMac
         }
 
 
-        public static void ReadManifest(string manifest) // Entry Point.  Should never be called from within Loading code.
+        public static void LoadApplicationManifest(string manifest) // Entry Point.  Should never be called from within this class.
         {
             //Console.WriteLine("Loading {0}", manifest);
             var doc = XDocument.Load(manifest);

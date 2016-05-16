@@ -14,8 +14,6 @@ namespace ClickMac
     {
         static Process process;
 
-        static bool InternalLaunch = false;
-
         public static string infoPlist { get { return Path.Combine("..", "Info.plist"); } }
 
         private static void Main(string[] args)
@@ -37,53 +35,14 @@ namespace ClickMac
             if (!String.IsNullOrWhiteSpace(Loading.entry.executable))
             {
                 Environment.SetEnvironmentVariable("ClickOnceAppVersion", Loading.entry.version);
+                Environment.SetEnvironmentVariable("ClickOncePid", Process.GetCurrentProcess().Id.ToString());
+
+
                 if (Environment.CurrentDirectory == Path.GetDirectoryName(Location))
                     Environment.CurrentDirectory = Loading.entry.folder;
-                #if AppDomains
-                if (InternalLaunch)
-                {
-                    Console.WriteLine("Warning!  Using depreciated Internal Launch code");
-                    #region InternalLaunchCode
-                    var launchTime = DateTime.Now;
-                    try
-                    {
-                        FileInfo targetFile = new FileInfo(Loading.entry.executable);
-                        Console.WriteLine("Launching from {0}", targetFile.FullName);
-                        // No direct references are ever made between the loader and the API.  
-                        // This means applications may use outdated DLLs without the CLR loading two seperate instances
-                        // And therefore not communicating properly.
-                        AppDomain.CurrentDomain.SetData("Kamahl.Deployment.Deployed", true);
-                        AppDomain.CurrentDomain.SetData("Kamahl.Deployment.ActivationUri", new Uri(Loading.entry.DeploymentProviderUrl));
-                        AppDomain.CurrentDomain.SetData("Kamahl.Deployment.Version", new Version(Loading.entry.version));
-                        var Target = Assembly.LoadFile(targetFile.FullName);
-                        if (Target.EntryPoint.GetParameters().Length == 0)
-                            Target.EntryPoint.Invoke(null, null);
-                        else
-                            Target.EntryPoint.Invoke(null, new string[][] { args });
-                    }
-                    catch (Exception v)
-                    {
-                        GC.Collect();  // Why were we doing this here?
-                                       // Not worth figuring out because we've depreciated the whole thing anyway.
-                        Console.WriteLine(v.ToString());
-                        if (DateTime.Now.Subtract(launchTime).TotalSeconds < 10)
-                        {
-                            Launch(args);
-                            Console.CancelKeyPress += Console_CancelKeyPress;
-                            process.WaitForExit();
-                        }
-                    }
-                    #endregion
-                }
-                else
-                {
-                #endif
-                    Launch(args);
-                    Console.CancelKeyPress += Console_CancelKeyPress;
-                    process.WaitForExit();
-                #if AppDomains
-                }
-                #endif
+                Launch(args);
+                Console.CancelKeyPress += Console_CancelKeyPress;
+                process.WaitForExit();
             }
             if (CheckForSelfUpdate(null))
                 return;
@@ -145,7 +104,7 @@ namespace ClickMac
                 if (!File.Exists("ClickMac.application"))
                     File.WriteAllText("ClickMac.application", "<?xml version=\"1.0\" encoding=\"utf-8\"?><asmv1:assembly xsi:schemaLocation=\"urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd\" manifestVersion=\"1.0\" xmlns:asmv1=\"urn:schemas-microsoft-com:asm.v1\" xmlns=\"urn:schemas-microsoft-com:asm.v2\" xmlns:asmv2=\"urn:schemas-microsoft-com:asm.v2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ><assemblyIdentity name=\"ClickMac.application\" version=\"1.0.0.0\" publicKeyToken=\"3ff3731db18bf4c7\" language=\"neutral\" processorArchitecture=\"msil\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><description asmv2:publisher=\"ClickMac\" asmv2:product=\"ClickMac\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><deployment install=\"true\" mapFileExtensions=\"true\"><subscription><update><beforeApplicationStartup /></update></subscription><deploymentProvider codebase=\"https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application\" /></deployment></asmv1:assembly>");
                 Loading.entry = new Loading.EntryPoint();
-                Loading.ReadManifest("ClickMac.application");
+                Loading.LoadApplicationManifest("ClickMac.application");
                 if (Loading.entry.executable == null)
                     return false;
                 if (!File.Exists("ClickMac.version") || Loading.entry.version != File.ReadAllText("ClickMac.version"))
