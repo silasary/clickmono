@@ -234,16 +234,18 @@ namespace ClickMac
         public static string GetLibraryLocation()
         {
             var path = Environment.CurrentDirectory; // If all else fails, fall back to Portable Mode.
-            switch (GetPlatform().Platform) {
-                case PlatformID.MacOSX:
+            switch (GetPlatform().Platform)
+            {
+                case PlatformID.MacOSX:  // ~/Library/
                     path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "ClickOnce");
                     break;
-                case PlatformID.Win32NT:
+                case PlatformID.Win32NT: // ~/Appdata/Local
+                case PlatformID.Unix:    // ~/.config/
                     path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ClickMac");
                     break;
-            default:
+                default:
 
-            break;
+                    break;
             }
             Directory.CreateDirectory(path);
             return path;

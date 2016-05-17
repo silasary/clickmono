@@ -43,6 +43,12 @@ namespace ClickMac
                     args = args.Skip(1).ToArray();
                 }
             }
+            else if (args.Length > 0 && Uri.IsWellFormedUriString(args[0], UriKind.Absolute))
+            {
+                Loading.LoadApplicationManifest(args[0]);
+                args = args.Skip(1).ToArray();
+            }
+
             else
             {
                 var manifests = Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.application");
