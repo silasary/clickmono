@@ -33,7 +33,13 @@ namespace ClickMac
             }
             else if (args.Length > 0 && File.Exists(args[0]))
             {
-                if (Path.GetExtension(args[0]).ToLower() != ".application" && Path.GetExtension(args[0]).ToLower() != ".manifest")
+                if (Path.GetExtension(args[0]).ToLower() == ".appref-ms")
+                {
+                    var uri = File.ReadAllText(args[0]); // Untested
+                    Loading.LoadApplicationManifest(uri);
+                    args = args.Skip(1).ToArray();
+                }
+                else if (Path.GetExtension(args[0]).ToLower() != ".application" && Path.GetExtension(args[0]).ToLower() != ".manifest")
                 {
                     LoadUnknownFile(args[0]);  // Associated file.  Or they're screwing with us. 
                 }
