@@ -93,7 +93,7 @@ namespace ClickMac
             // Check if manifest has been redirected/updated by the DeploymentProvider element
             string path;
             if (deployment.Element(xname("deploymentProvider", ns.asmv2)) == null)
-                path = location;
+                path = getUrlFolder(location);
             else
                 path = getUrlFolder(deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value);
             foreach (var dependency in manifest.Root.Elements(xname("dependency", ns.asmv2)))
