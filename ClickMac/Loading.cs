@@ -57,46 +57,27 @@ namespace ClickMac
         public static void LoadApplicationManifest(string manifestUri) // Entry Point.  Should never be called from within this class.
         {
             Console.WriteLine("Loading {0}", manifestUri);
-            var doc = XDocument.Load(manifestUri);
             var wd = Environment.CurrentDirectory;
             if (!Loading.PortableMode)
                 Environment.CurrentDirectory = Platform.GetLibraryLocation( );
-            var deployment = doc.Root.Element(xname("deployment", ns.asmv2));
-            if (deployment.Element(xname("deploymentProvider", ns.asmv2)) == null)
-            {
-                LoadManifest(doc, manifestUri);
-            }
-            else
-            {
-                var provider = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
-                entry.DeploymentProviderUrl = provider;
-                XDocument newManifest = null;
-                try
-                {
-                    Log("Getting updated manifest from {0}", provider);
-                    newManifest = XDocument.Load(new WebClient().OpenRead(provider));
-                    newManifest.Save(newManifest.Root.Element(xname("assemblyIdentity", ns.asmv1)).Attribute("name").Value);
-                }
-                catch (WebException)
-                {
-                    Log("Getting manifest failed. Starting in Offline Mode");
-                    newManifest = XDocument.Load(manifestUri);
-                }
-                LoadManifest(newManifest, provider);
-            }
+
+            var application = new Manifest(manifestUri);
+            LoadManifest(application);
+            //entry = application.entry;
+
             Environment.CurrentDirectory = wd;
         }
 
-        private static void LoadManifest(XDocument manifest, string location)
+        private static void LoadManifest(Manifest manifest)
         {
-            var deployment = manifest.Root.Element(xname("deployment", ns.asmv2));
+            var deployment = manifest.Xml.Root.Element(xname("deployment", ns.asmv2));
             // Check if manifest has been redirected/updated by the DeploymentProvider element
             string path;
             if (deployment.Element(xname("deploymentProvider", ns.asmv2)) == null)
-                path = getUrlFolder(location);
+                path = getUrlFolder(manifest.Location);
             else
                 path = getUrlFolder(deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value);
-            foreach (var dependency in manifest.Root.Elements(xname("dependency", ns.asmv2)))
+            foreach (var dependency in manifest.Xml.Root.Elements(xname("dependency", ns.asmv2)))
             {
                 ProcessDependency(dependency, path, null);
             }
@@ -248,16 +229,7 @@ namespace ClickMac
             }
         }
 
-        public class EntryPoint
-        {
-            public string DeploymentProviderUrl;
-
-            public string executable;
-            public string folder;
-            public string version;
-            public string icon;
-            public string displayName;
-        }
+       
 
 
         //public static Program.EntryPoint entry { get { return Program.entry; } set { Program.entry = value; } }

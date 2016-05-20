@@ -101,7 +101,7 @@ namespace ClickMac
                     File.Delete("ClickMac.old.exe");
                 if (File.Exists("Kamahl.Deployment.dll.old"))
                     File.Delete("Kamahl.Deployment.dll.old");
-                Loading.entry = new Loading.EntryPoint();
+                Loading.entry = new EntryPoint();
                 // TODO: Find a better deployment URL than my Dropbox account
                 Loading.LoadApplicationManifest("https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application");
                 if (Loading.entry.executable == null)
@@ -125,7 +125,7 @@ namespace ClickMac
                         return true;
                     }
                 }
-                Loading.entry = new Loading.EntryPoint();
+                Loading.entry = new EntryPoint();
             }
             catch (WebException)
             { }
