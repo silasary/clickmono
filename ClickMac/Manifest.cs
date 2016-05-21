@@ -53,6 +53,7 @@ namespace ClickMac
 
         public EntryPoint entry = new EntryPoint();
 
+        public List<Manifest> Children { get; private set; }
 
         public Manifest(string Uri, string subfolder = "")
         {
@@ -152,10 +153,11 @@ namespace ClickMac
             {
                 var manifest = new Manifest(path + "/" + codebase.Replace('\\', '/'), version);
                 manifest.ProcessDependencies();
+                Children.Add(manifest);
             }
             foreach (var file in Xml.Root.Elements(xname("file", ns.asmv2)))
             {
-                Loading.GetFile(file, getUrlFolder(path + "/" + codebase.Replace('\\', '/')), Subfolder ?? version);
+                GetFile(file, getUrlFolder(path + "/" + codebase.Replace('\\', '/')));
             }
             foreach (var fa in Xml.Root.Elements(xname("fileAssociation", ns.cov1)))
             {
@@ -183,6 +185,52 @@ namespace ClickMac
             {
                 if (!File.Exists(Path.Combine(Subfolder, Path.GetFileName(codebase))))
                     File.Copy(Path.Combine(".", version, Path.GetFileName(codebase)), Path.Combine(Subfolder, Path.GetFileName(codebase)));
+            }
+        }
+        private void GetFile(XElement file, string path)
+        {
+
+            string name = file.Attribute("name").Value;
+            string filename = Path.Combine(Subfolder, name.Replace('\\', Path.DirectorySeparatorChar));
+            if (!Directory.Exists(Path.GetDirectoryName(filename)))
+                Directory.CreateDirectory(Path.GetDirectoryName(filename));
+            Console.WriteLine("Getting {0}", filename);
+            bool downloaded = false;
+            if (File.Exists(filename))
+            {
+                if (new FileInfo(filename).Length == int.Parse(file.Attribute("size").Value))
+                {
+                    downloaded = true;
+                }
+                else
+                    File.Move(filename, filename + "._");
+            }
+            if (!downloaded)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filename));
+                try
+                {
+                    new WebClient().DownloadFile(path + "/" + name.Replace('\\', '/'), filename);
+                }
+                catch (WebException)
+                {
+                    try
+                    {
+                        new WebClient().DownloadFile(path + "/" + name.Replace('\\', '/') + ".deploy", filename);
+                    }
+                    catch (WebException)
+                    {
+                        if (File.Exists(filename + "._"))
+                            File.Move(filename + "._", filename);
+                        else
+                        {
+                            Loading.Log("\tFailed to download!  Application might not work.");
+                            return;
+                        }
+                    }
+                }
+                if (File.Exists(filename + "._"))
+                    File.Delete(filename + "._");
             }
         }
 
