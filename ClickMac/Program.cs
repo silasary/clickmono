@@ -101,10 +101,9 @@ namespace ClickMac
                     File.Delete("ClickMac.old.exe");
                 if (File.Exists("Kamahl.Deployment.dll.old"))
                     File.Delete("Kamahl.Deployment.dll.old");
-                if (!File.Exists("ClickMac.application"))
-                    File.WriteAllText("ClickMac.application", "<?xml version=\"1.0\" encoding=\"utf-8\"?><asmv1:assembly xsi:schemaLocation=\"urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd\" manifestVersion=\"1.0\" xmlns:asmv1=\"urn:schemas-microsoft-com:asm.v1\" xmlns=\"urn:schemas-microsoft-com:asm.v2\" xmlns:asmv2=\"urn:schemas-microsoft-com:asm.v2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ><assemblyIdentity name=\"ClickMac.application\" version=\"1.0.0.0\" publicKeyToken=\"3ff3731db18bf4c7\" language=\"neutral\" processorArchitecture=\"msil\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><description asmv2:publisher=\"ClickMac\" asmv2:product=\"ClickMac\" xmlns=\"urn:schemas-microsoft-com:asm.v1\" /><deployment install=\"true\" mapFileExtensions=\"true\"><subscription><update><beforeApplicationStartup /></update></subscription><deploymentProvider codebase=\"https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application\" /></deployment></asmv1:assembly>");
                 Loading.entry = new Loading.EntryPoint();
-                Loading.LoadApplicationManifest("ClickMac.application");
+                // TODO: Find a better deployment URL than my Dropbox account
+                Loading.LoadApplicationManifest("https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application");
                 if (Loading.entry.executable == null)
                     return false;
                 if (!File.Exists("ClickMac.version") || Loading.entry.version != File.ReadAllText("ClickMac.version"))
