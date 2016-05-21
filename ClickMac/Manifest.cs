@@ -2,6 +2,10 @@
 using System.Xml.Linq;
 using System.Net;
 using System.IO;
+using System.Collections.Generic;
+using System.Security.Cryptography.Xml;
+using System.Xml;
+using System.Security.Cryptography;
 
 namespace ClickMac
 {
@@ -60,6 +64,8 @@ namespace ClickMac
             Subfolder = subfolder;
             Location = Uri;
             Xml = XDocument.Load(Uri);
+            VerifySignature();
+
             DiskLocation = Xml.Root.Element(xname("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
 
             var deployment = Xml.Root.Element(xname("deployment", ns.asmv2));
@@ -80,6 +86,20 @@ namespace ClickMac
                     newManifest = XDocument.Load(DiskLocation);
                 }
             }
+        }
+
+        private bool VerifySignature()
+        {
+            var xdoc = new XmlDocument();
+            xdoc.PreserveWhitespace = true;
+            xdoc.Load(Location);
+            SignedXml signed = new SignedXml(xdoc);
+
+            XmlNodeList nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
+            signed.LoadXml((XmlElement)nodeList[0]);
+            AsymmetricAlgorithm key = null;
+            var res = signed.CheckSignatureReturningKey(out key);
+            return res;
         }
 
         public void ProcessDependencies()
