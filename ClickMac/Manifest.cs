@@ -62,15 +62,15 @@ namespace ClickMac
             DiskLocation = Xml.Root.Element(xname("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
 
             var deployment = Xml.Root.Element(xname("deployment", ns.asmv2));
-            if (deployment.Element(xname("deploymentProvider", ns.asmv2)) != null)
+            if (deployment != null && deployment.Element(xname("deploymentProvider", ns.asmv2)) != null)
             {
-                var provider = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
-                entry.DeploymentProviderUrl = provider;
+                Location = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
+                entry.DeploymentProviderUrl = Location;
                 XDocument newManifest = null;
                 try
                 {
-                    Loading.Log("Getting updated manifest from {0}", provider);
-                    newManifest = XDocument.Load(new WebClient().OpenRead(provider));
+                    Loading.Log("Getting updated manifest from {0}", Location);
+                    newManifest = XDocument.Load(new WebClient().OpenRead(Location));
                     newManifest.Save(DiskLocation);
                 }
                 catch (WebException)
@@ -125,7 +125,7 @@ namespace ClickMac
             {
                 try
                 {
-                    Log("Getting Dependency {0}", codebase);
+                    Loading.Log("Getting Dependency {0}", codebase);
                     new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
                 }
                 catch (WebException)
@@ -140,7 +140,7 @@ namespace ClickMac
                             File.Move(filename + "._", filename);
                         else
                         {
-                            Log("\tFailed to download!  Application might not work.");
+                            Loading.Log("\tFailed to download!  Application might not work.");
                             return;
                         }
                     }
@@ -150,12 +150,12 @@ namespace ClickMac
                 File.Delete(filename + "._");
             if (Path.GetExtension(codebase) == ".manifest")
             {
-                var manifest = new Manifest(Path.Combine(".", version, Path.GetFileName(codebase)), version);
+                var manifest = new Manifest(path + "/" + codebase.Replace('\\', '/'), version);
                 manifest.ProcessDependencies();
             }
             foreach (var file in Xml.Root.Elements(xname("file", ns.asmv2)))
             {
-                GetFile(file, getUrlFolder(path + "/" + codebase.Replace('\\', '/')), Subfolder ?? version);
+                Loading.GetFile(file, getUrlFolder(path + "/" + codebase.Replace('\\', '/')), Subfolder ?? version);
             }
             foreach (var fa in Xml.Root.Elements(xname("fileAssociation", ns.cov1)))
             {
@@ -166,7 +166,7 @@ namespace ClickMac
             {
                 
                 entry.executable = entryPoint.Element(xname("commandLine", ns.asmv2)).Attribute("file").Value;
-                entry.folder = new DirectoryInfo(copyto ?? version).FullName; // Alsolute reference.
+                entry.folder = new DirectoryInfo(Subfolder ?? version).FullName; // Alsolute reference.
                 entry.version = assemblyIdentity.Attribute("version").Value;
                 entry.displayName = entryPoint.Element(xname("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
             }

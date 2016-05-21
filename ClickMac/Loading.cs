@@ -70,119 +70,21 @@ namespace ClickMac
 
         private static void LoadManifest(Manifest manifest)
         {
-            var deployment = manifest.Xml.Root.Element(xname("deployment", ns.asmv2));
+            //var deployment = manifest.Xml.Root.Element(xname("deployment", ns.asmv2));
             // Check if manifest has been redirected/updated by the DeploymentProvider element
-            string path;
-            if (deployment.Element(xname("deploymentProvider", ns.asmv2)) == null)
-                path = getUrlFolder(manifest.Location);
-            else
-                path = getUrlFolder(deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value);
-            foreach (var dependency in manifest.Xml.Root.Elements(xname("dependency", ns.asmv2)))
-            {
-                ProcessDependency(dependency, path, null);
-            }
+            //string path;
+            //if (deployment.Element(xname("deploymentProvider", ns.asmv2)) == null)
+            //    path = getUrlFolder(manifest.Location);
+            //else
+            //    path = getUrlFolder(deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value);
+            //foreach (var dependency in manifest.Xml.Root.Elements(xname("dependency", ns.asmv2)))
+            //{
+            //    ProcessDependency(dependency, path, null);
+            //}
+            manifest.ProcessDependencies();
         }
 
-        private static void ProcessDependency(XElement dependency, string path, string copyto)
-        {
-            var dependentAssembly = dependency.Element(xname("dependentAssembly", ns.asmv2));
-            if (dependentAssembly == null || dependentAssembly.Attribute("dependencyType").Value != "install")
-                return;
-            var codebase = FixFileSeperator(dependentAssembly.Attribute("codebase").Value);
-            var assemblyIdentity = dependentAssembly.Element(xname("assemblyIdentity", ns.asmv2));
-            string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
-            Directory.CreateDirectory(version);
-            try
-            {
-                foreach (var deploy in Directory.EnumerateFiles(version, "*.deploy", SearchOption.AllDirectories))
-                {
-                    var dest = deploy.Substring(0, deploy.Length - ".deploy".Length);
-                    if (File.Exists(dest))
-                        File.Delete(dest);
-                    File.Move(deploy, dest);
-                }
-            }
-            catch (IOException) { }
-            string filename = Path.Combine(".", version, Path.GetFileName(codebase));
-            bool downloaded = false;
-            if (File.Exists(filename))
-            {
-                if (new FileInfo(filename).Length == int.Parse(dependentAssembly.Attribute("size").Value)) // HACK: Not an actual equality test. (Although it's usually good enough)
-                {
-                    downloaded = true;
-                }
-                else
-                    File.Move(filename, filename + "._");
-            }
-            if (!downloaded)
-            {
-                try
-                {
-                    Log("Getting Dependency {0}", codebase);
-                    new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
-                }
-                catch (WebException)
-                {
-                    try
-                    {
-                        new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/') + ".deploy", filename);
-                    }
-                    catch (WebException)
-                    {
-                        if (File.Exists(filename + "._"))
-                            File.Move(filename + "._", filename);
-                        else
-                        {
-                            Log("\tFailed to download!  Application might not work.");
-                            return;
-                        }
-                    }
-                }
-            }
-            if (File.Exists(filename + "._"))
-                File.Delete(filename + "._");
-            if (Path.GetExtension(codebase) == ".manifest")
-            {
-                var manifest = XDocument.Load(Path.Combine(".", version, Path.GetFileName(codebase)));
-                foreach (var Dependency in manifest.Root.Elements(xname("dependency", ns.asmv2)))
-                {
-                    ProcessDependency(Dependency, getUrlFolder(path + "/" + codebase.Replace('\\', '/')), copyto ?? version);
-                }
-                foreach (var file in manifest.Root.Elements(xname("file", ns.asmv2)))
-                {
-                    GetFile(file, getUrlFolder(path + "/" + codebase.Replace('\\', '/')), copyto ?? version);
-                }
-                foreach (var fa in manifest.Root.Elements(xname("fileAssociation", ns.cov1)))
-                {
-                    Platform.AssociateFile(fa);
-                }
-                var entryPoint = manifest.Root.Element(xname("entryPoint", ns.asmv2));
-                if (entryPoint != null)
-                {
-                    
-                       entry.executable = entryPoint.Element(xname("commandLine", ns.asmv2)).Attribute("file").Value;
-                       entry.folder = new DirectoryInfo(copyto ?? version).FullName; // Alsolute reference.
-                       entry.version = assemblyIdentity.Attribute("version").Value;
-                       entry.displayName = entryPoint.Element(xname("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
-                }
-                var description = manifest.Root.Element(xname("description", ns.asmv1));
-                if (description != null)
-                {
-                    string iconFile = description.Attribute(xname("iconFile", ns.asmv2)).Value;
-                    if (File.Exists(Path.Combine(copyto ?? version, iconFile)))
-                    {
-                        entry.icon = Path.Combine(copyto ?? version, iconFile);
-                    }
-                }
-
-            }
-            if (!String.IsNullOrWhiteSpace(copyto))
-            {
-                if (!File.Exists(Path.Combine(copyto, Path.GetFileName(codebase))))
-                    File.Copy(Path.Combine(".", version, Path.GetFileName(codebase)), Path.Combine(copyto, Path.GetFileName(codebase)));
-            }
-        }
-        private static void GetFile(XElement file, string path, string copyto)
+        internal static void GetFile(XElement file, string path, string copyto)
         {
 
             string name = file.Attribute("name").Value;
