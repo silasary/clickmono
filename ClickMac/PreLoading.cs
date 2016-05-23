@@ -1,5 +1,4 @@
-﻿//using Kamahl.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -81,18 +80,19 @@ namespace ClickMac
             return Loading.LoadApplicationManifest(Platform.GetManifestForExt(ext));
         }
 
+        // This is probably problematic. Let's not do it.  (Although maybe I might make yet another software package manager, and that changes?)
         public static Manifest GetManifestFromName(string p)
         {
             return null;
-            Dictionary<string, string> manifests = null;
-            try
-            {
-                //manifests = Serialization.LoadFromJson<Dictionary<string, string>>(new WebClient().DownloadString("https://dl.dropboxusercontent.com/u/4187827/ClickOnce/manifests.txt"));
-            }
-            catch (WebException) { return null; }
-            if (!manifests.ContainsKey(p))
-                return null;
-            return Loading.LoadApplicationManifest(manifests[p]);
+//            Dictionary<string, string> manifests = null;
+//            try
+//            {
+//                manifests = Serialization.LoadFromJson<Dictionary<string, string>>(new WebClient().DownloadString("https://dl.dropboxusercontent.com/u/4187827/ClickOnce/manifests.txt"));
+//            }
+//            catch (WebException) { return null; }
+//            if (!manifests.ContainsKey(p))
+//                return null;
+//            return Loading.LoadApplicationManifest(manifests[p]);
         }
 
     }

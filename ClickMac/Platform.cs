@@ -37,7 +37,7 @@ namespace ClickMac
     </dict>*/
         #endregion
 
-        public static void AssociateFile(XEleDict fa)
+        public static void AssociateFile(XEleDict fa, Manifest application)
         {
             var ext = fa["extension"].TrimStart('.');
             if (File.Exists(infoPlist)) // OSX is the only one who cares about plists.
@@ -51,42 +51,42 @@ namespace ClickMac
                 catch (UnauthorizedAccessException)
                 {
                     Console.WriteLine("Cannot write to Registry.  Elevating.");
-                    DoElevate(fa, ext);
+                    DoElevate(fa, ext, application);
                 }
             }
-            AssociateInternal(fa);
+            AssociateInternal(fa, application);
         }
 
-        private static void DoElevate(XEleDict fa, string ext)
+        private static void DoElevate(XEleDict fa, string ext, Manifest application)
         {
-//            File.WriteAllText("assoc.xml", fa.inner.ToString());
-//            Process process = Process.Start(new ProcessStartInfo
-//            {
-//                FileName = Assembly.GetEntryAssembly().Location,
-//                UseShellExecute = true,
-//                Verb = "runas",
-//                Arguments = String.Format("-associate {0}", Loading.entry.DeploymentProviderUrl)
-//            });
-//            if (process != null)
-//            {
-//                process.WaitForExit();
-//            }
+            File.WriteAllText("assoc.xml", fa.inner.ToString());
+            Process process = Process.Start(new ProcessStartInfo
+            {
+                FileName = Assembly.GetEntryAssembly().Location,
+                UseShellExecute = true,
+                Verb = "runas",
+                Arguments = String.Format("-associate {0}", application.Entry.DeploymentProviderUrl)
+            });
+            if (process != null)
+            {
+                process.WaitForExit();
+            }
         }
 
-        private static void AssociateInternal(XEleDict fa)
+        private static void AssociateInternal(XEleDict fa, Manifest application)
         {
-//            Dictionary<string, string> data;
-//            if (File.Exists("assocs.plist"))
-//                data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
-//            else
-//                data = new Dictionary<string, string>();
-//            data[fa["extension"]] = Loading.entry.DeploymentProviderUrl;
-//            try
-//            {
-//                Plist.writeXml(data, "assocs.plist");
-//            }
-//            catch (IOException)
-//            { }
+            Dictionary<string, string> data;
+            if (File.Exists("assocs.plist"))
+                data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
+            else
+                data = new Dictionary<string, string>();
+            data[fa["extension"]] = application.Entry.DeploymentProviderUrl;
+            try
+            {
+                Plist.writeXml(data, "assocs.plist");
+            }
+            catch (IOException)
+            { }
         }
 
         private static Dictionary<string, string> ConvertPlistToStringDict(Dictionary<string, object> dictionary)
@@ -219,8 +219,6 @@ namespace ClickMac
                         return new OperatingSystem (PlatformID.MacOSX, Environment.OSVersion.Version);
                     else
                         return Environment.OSVersion;
-                    break;
-
                 case PlatformID.MacOSX: // Wow, they actually got it!
                                         // Not going to ever get called, because of this code:
                     // https://github.com/mono/mono/blob/9e396e4022a4eefbcdeeae1d86c03afbf04043b7/mcs/class/corlib/System/Environment.cs#L239

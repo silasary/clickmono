@@ -185,7 +185,7 @@ namespace ClickMac
             }
             foreach (var fa in Xml.Root.Elements(xname("fileAssociation", ns.cov1)))
             {
-                Platform.AssociateFile(fa);
+                Platform.AssociateFile(fa, this);
             }
             var entryPoint = Xml.Root.Element(xname("entryPoint", ns.asmv2));
             if (entryPoint != null)
