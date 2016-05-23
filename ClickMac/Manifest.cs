@@ -55,15 +55,8 @@ namespace ClickMac
         public string DiskLocation;
         public string Subfolder;
 
-        public EntryPoint entry = new EntryPoint();
-
-        public EntryPoint Entry
-        {
-            get
-            {
-                return entry;
-            }
-        }
+        private EntryPoint entry = new EntryPoint();
+        public EntryPoint Entry { get { return entry; } }
 
         public List<Manifest> Children { get; private set; } = new List<Manifest>();
 

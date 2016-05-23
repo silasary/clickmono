@@ -89,7 +89,7 @@ namespace ClickMac
         private static bool CheckForSelfUpdate(string[] args)
         {
             #if DEBUG
-            if (Debugger.IsAttached && args != null)
+            if (Debugger.IsAttached)
                 return false;
             #endif
             Environment.CurrentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
