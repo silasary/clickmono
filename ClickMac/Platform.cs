@@ -59,34 +59,34 @@ namespace ClickMac
 
         private static void DoElevate(XEleDict fa, string ext)
         {
-            File.WriteAllText("assoc.xml", fa.inner.ToString());
-            Process process = Process.Start(new ProcessStartInfo
-            {
-                FileName = Assembly.GetEntryAssembly().Location,
-                UseShellExecute = true,
-                Verb = "runas",
-                Arguments = String.Format("-associate {0}", Loading.entry.DeploymentProviderUrl)
-            });
-            if (process != null)
-            {
-                process.WaitForExit();
-            }
+//            File.WriteAllText("assoc.xml", fa.inner.ToString());
+//            Process process = Process.Start(new ProcessStartInfo
+//            {
+//                FileName = Assembly.GetEntryAssembly().Location,
+//                UseShellExecute = true,
+//                Verb = "runas",
+//                Arguments = String.Format("-associate {0}", Loading.entry.DeploymentProviderUrl)
+//            });
+//            if (process != null)
+//            {
+//                process.WaitForExit();
+//            }
         }
 
         private static void AssociateInternal(XEleDict fa)
         {
-            Dictionary<string, string> data;
-            if (File.Exists("assocs.plist"))
-                data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
-            else
-                data = new Dictionary<string, string>();
-            data[fa["extension"]] = Loading.entry.DeploymentProviderUrl;
-            try
-            {
-                Plist.writeXml(data, "assocs.plist");
-            }
-            catch (IOException)
-            { }
+//            Dictionary<string, string> data;
+//            if (File.Exists("assocs.plist"))
+//                data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
+//            else
+//                data = new Dictionary<string, string>();
+//            data[fa["extension"]] = Loading.entry.DeploymentProviderUrl;
+//            try
+//            {
+//                Plist.writeXml(data, "assocs.plist");
+//            }
+//            catch (IOException)
+//            { }
         }
 
         private static Dictionary<string, string> ConvertPlistToStringDict(Dictionary<string, object> dictionary)
@@ -140,7 +140,7 @@ namespace ClickMac
         {
             var key = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(fa["progid"]);
             key.SetValue("", fa["description"], Microsoft.Win32.RegistryValueKind.String);
-            key.SetValue("DeploymentProviderUrl", Loading.entry.DeploymentProviderUrl);
+//            key.SetValue("DeploymentProviderUrl", Loading.entry.DeploymentProviderUrl);
             string[] subs = new string[] { "shell", "open", "command" };
             foreach (var k in subs)
                 key = key.CreateSubKey(k);

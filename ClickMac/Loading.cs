@@ -12,7 +12,6 @@ namespace ClickMac
     {
         public delegate void log(string s, params object[] args);
         public static log Log;
-        public static EntryPoint entry = new EntryPoint();
         public static bool PortableMode = false;
 
         public static string FixFileSeperator(string path)

@@ -22,25 +22,26 @@ namespace ClickMac
             Loading.Log = Console.WriteLine;
             Environment.CurrentDirectory = Path.GetDirectoryName(Location);
             Console.WriteLine("Running on {0}", Platform.GetPlatform( ));
-            if (PreLoading.DoArgs(ref args) == true)
+            var application = PreLoading.DoArgs(ref args);
+            if (application == null)
                 return;
             if (File.Exists(infoPlist))
             {
                 dynamic plist = PlistCS.Plist.readPlist(infoPlist);
-                Console.WriteLine("Setting plist icon to '{0}'", Loading.entry.icon);  // If not in Portable Mode, this points to a file somewhere in /Users/Me/Library/ClickOnce/*.ico - This is not Ideal.
-                plist["CFBundleIconFile"] = Loading.FixFileSeperator(Loading.entry.icon);  // TODO: Check relative Path, and copy Icon into App Bundle if needed. Of course, all of this assumes running on a Mac.
-                plist["CFBundleDisplayName"] = Loading.entry.displayName;                  // PCs will just use the embedded EXE Icon, or not care in the slightest.  Also, They'll probably just end up using 
+                Console.WriteLine("Setting plist icon to '{0}'", application.Entry.icon);  // If not in Portable Mode, this points to a file somewhere in /Users/Me/Library/ClickOnce/*.ico - This is not Ideal.
+                plist["CFBundleIconFile"] = Loading.FixFileSeperator(application.Entry.icon);  // TODO: Check relative Path, and copy Icon into App Bundle if needed. Of course, all of this assumes running on a Mac.
+                plist["CFBundleDisplayName"] = application.Entry.displayName;                  // PCs will just use the embedded EXE Icon, or not care in the slightest.  Also, They'll probably just end up using 
                 PlistCS.Plist.writeXml(plist, infoPlist);                                  // The Official Clickonce implementation, unless they're running on 9x, and need Mono+ClickMac.
             }                                                                              // What do you mean I'm the only person that's ever going to apply to?  But yeah, 9x people can deal with the COMMAND.COM icon.
-            if (!String.IsNullOrWhiteSpace(Loading.entry.executable))
+            if (!String.IsNullOrWhiteSpace(application.Entry.executable))
             {
-                Environment.SetEnvironmentVariable("ClickOnceAppVersion", Loading.entry.version);
+                Environment.SetEnvironmentVariable("ClickOnceAppVersion", application.Entry.version);
                 Environment.SetEnvironmentVariable("ClickOncePid", Process.GetCurrentProcess().Id.ToString());
 
 
                 if (Environment.CurrentDirectory == Path.GetDirectoryName(Location))
-                    Environment.CurrentDirectory = Loading.entry.folder;
-                Launch(args);
+                    Environment.CurrentDirectory = application.Entry.folder;
+                Launch(application, args);
                 Console.CancelKeyPress += Console_CancelKeyPress;
                 process.WaitForExit();
             }
@@ -54,15 +55,12 @@ namespace ClickMac
             return null;
         }
 
-
-
-
-        private static void Launch(string[] args)
+        private static void Launch(Manifest application, string[] args)
         {
             //Console.WriteLine("Launching '{0}' from {1}", Loading.entry.executable, Environment.CurrentDirectory);
             try
             {
-                process = Process.Start(new ProcessStartInfo(Loading.entry.executable, String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
+                process = Process.Start(new ProcessStartInfo(application.Entry.executable, String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
                 process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
                 process.BeginOutputReadLine();
             }
@@ -70,7 +68,7 @@ namespace ClickMac
             {
                 try
                 {
-                    process = Process.Start(new ProcessStartInfo("mono", String.Format("{0} {1}", Loading.entry.executable, String.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
+                    process = Process.Start(new ProcessStartInfo("mono", String.Format("{0} {1}", application.Entry.executable, String.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
                     process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
                     process.BeginOutputReadLine();
                 }
@@ -78,11 +76,11 @@ namespace ClickMac
                 {
                     try
                     {
-                        process = Process.Start(new ProcessStartInfo("mono", Loading.entry.executable) { UseShellExecute = true });
+                        process = Process.Start(new ProcessStartInfo("mono", application.Entry.executable) { UseShellExecute = true });
                     }
                     catch (Win32Exception)
                     {
-                        process = Process.Start(new ProcessStartInfo(Loading.entry.executable) { UseShellExecute = true });
+                        process = Process.Start(new ProcessStartInfo(application.Entry.executable) { UseShellExecute = true });
                     }
                 }
             }
@@ -101,23 +99,22 @@ namespace ClickMac
                     File.Delete("ClickMac.old.exe");
                 if (File.Exists("Kamahl.Deployment.dll.old"))
                     File.Delete("Kamahl.Deployment.dll.old");
-                Loading.entry = new EntryPoint();
                 // TODO: Find a better deployment URL than my Dropbox account
-                Loading.LoadApplicationManifest("https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application");
-                if (Loading.entry.executable == null)
+                var update = Loading.LoadApplicationManifest("https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application");
+                if (update.Entry.executable == null)
                     return false;
-                if (!File.Exists("ClickMac.version") || Loading.entry.version != File.ReadAllText("ClickMac.version"))
+                if (!File.Exists("ClickMac.version") || update.Entry.version != File.ReadAllText("ClickMac.version"))
                 {
                     var loc = Assembly.GetExecutingAssembly().Location;
                     var deploc = Path.Combine(Path.GetDirectoryName(loc), "Kamahl.Deployment.dll");
                     File.Move(loc, "ClickMac.old.exe");
                     if (File.Exists(deploc))
                         File.Move(deploc, "Kamahl.Deployment.dll.old");
-                    File.Copy(Path.Combine(Loading.entry.folder, Loading.entry.executable), loc);
-                    if (File.Exists(Path.Combine(Loading.entry.folder, "Kamahl.Deployment.dll")))
-                        File.Copy(Path.Combine(Loading.entry.folder, "Kamahl.Deployment.dll"), deploc);
-                    File.WriteAllText("ClickMac.version", Loading.entry.version);
-                    Console.WriteLine("Updated {0} to version {1}", Path.GetFileName(loc), Loading.entry.version);
+                    File.Copy(Path.Combine(update.Entry.folder, update.Entry.executable), loc);
+                    if (File.Exists(Path.Combine(update.Entry.folder, "Kamahl.Deployment.dll")))
+                        File.Copy(Path.Combine(update.Entry.folder, "Kamahl.Deployment.dll"), deploc);
+                    File.WriteAllText("ClickMac.version", update.Entry.version);
+                    Console.WriteLine("Updated {0} to version {1}", Path.GetFileName(loc), update.Entry.version);
                     if (args != null)
                     {
                         var Updated = Assembly.LoadFile(loc);
@@ -125,7 +122,6 @@ namespace ClickMac
                         return true;
                     }
                 }
-                Loading.entry = new EntryPoint();
             }
             catch (WebException)
             { }

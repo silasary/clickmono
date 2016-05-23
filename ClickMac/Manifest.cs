@@ -57,7 +57,15 @@ namespace ClickMac
 
         public EntryPoint entry = new EntryPoint();
 
-        public List<Manifest> Children { get; private set; }
+        public EntryPoint Entry
+        {
+            get
+            {
+                return entry;
+            }
+        }
+
+        public List<Manifest> Children { get; private set; } = new List<Manifest>();
 
         public Manifest(string Uri, string subfolder = "")
         {
@@ -96,6 +104,8 @@ namespace ClickMac
             SignedXml signed = new SignedXml(xdoc);
 
             XmlNodeList nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
+            if (nodeList.Count == 0)
+                return false;
             signed.LoadXml((XmlElement)nodeList[0]);
             AsymmetricAlgorithm key = null;
             var res = signed.CheckSignatureReturningKey(out key);
@@ -174,6 +184,7 @@ namespace ClickMac
                 var manifest = new Manifest(path + "/" + codebase.Replace('\\', '/'), version);
                 manifest.ProcessDependencies();
                 Children.Add(manifest);
+                entry.Import(manifest.entry);
             }
             foreach (var file in Xml.Root.Elements(xname("file", ns.asmv2)))
             {
@@ -186,7 +197,6 @@ namespace ClickMac
             var entryPoint = Xml.Root.Element(xname("entryPoint", ns.asmv2));
             if (entryPoint != null)
             {
-                
                 entry.executable = entryPoint.Element(xname("commandLine", ns.asmv2)).Attribute("file").Value;
                 entry.folder = new DirectoryInfo(Subfolder ?? version).FullName; // Alsolute reference.
                 entry.version = assemblyIdentity.Attribute("version").Value;
@@ -195,10 +205,13 @@ namespace ClickMac
             var description = Xml.Root.Element(xname("description", ns.asmv1));
             if (description != null)
             {
-                string iconFile = description.Attribute(xname("iconFile", ns.asmv2)).Value;
-                if (File.Exists(Path.Combine(Subfolder ?? version, iconFile)))
+                var iconFile = description.Attribute(xname("iconFile", ns.asmv2));
+                if (iconFile != null && !string.IsNullOrWhiteSpace(iconFile.Value))
                 {
-                    entry.icon = Path.Combine(Subfolder ?? version, iconFile);
+                    if (File.Exists(Path.Combine(Subfolder ?? version, iconFile.Value)))
+                    {
+                        entry.icon = Path.Combine(Subfolder ?? version, iconFile.Value);
+                    }
                 }
             }
             if (!String.IsNullOrWhiteSpace(Subfolder))

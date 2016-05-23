@@ -11,12 +11,13 @@ namespace ClickMac
 {
     class PreLoading
     {
-        internal static bool DoArgs(ref string[] args)
+        internal static Manifest DoArgs(ref string[] args)
         {
+            Manifest res = null;
             if (args.Length >= 1 && args[0] == "-associate") // Called by Platform.DoElevate().
             {
                 Loading.LoadApplicationManifest(Platform.GetLocalManifest(args[1]));
-                return true; // Abort - We can't accidentally run the app with Elevated Permissions.
+                return null; // Abort - We can't accidentally run the app with Elevated Permissions.
             }
             else if (args.Length > 1 && args[0] == "-o")  // Called by Explorer, when the user double-clicks a file.
             {
@@ -36,7 +37,7 @@ namespace ClickMac
                 if (Path.GetExtension(args[0]).ToLower() == ".appref-ms")
                 {
                     var uri = File.ReadAllText(args[0]); // Untested
-                    Loading.LoadApplicationManifest(uri);
+                    res = Loading.LoadApplicationManifest(uri);
                     args = args.Skip(1).ToArray();
                 }
                 else if (Path.GetExtension(args[0]).ToLower() != ".application" && Path.GetExtension(args[0]).ToLower() != ".manifest")
@@ -45,13 +46,13 @@ namespace ClickMac
                 }
                 else
                 {
-                    Loading.LoadApplicationManifest(args[0]);
+                    res = Loading.LoadApplicationManifest(args[0]);
                     args = args.Skip(1).ToArray();
                 }
             }
             else if (args.Length > 0 && Uri.IsWellFormedUriString(args[0], UriKind.Absolute))
             {
-                Loading.LoadApplicationManifest(args[0]);
+                res = Loading.LoadApplicationManifest(args[0]);
                 args = args.Skip(1).ToArray();
             }
 
@@ -60,17 +61,17 @@ namespace ClickMac
                 var manifests = Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.application");
                 var pref = manifests.FirstOrDefault(x => !Path.GetFileName(x).StartsWith("ClickMac"));
                 if (pref != null)
-                    Loading.LoadApplicationManifest(pref);
+                    res = Loading.LoadApplicationManifest(pref);
                 else
                 {
                     if (!GetManifestFromName(Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location)))
                     {
                         Console.WriteLine("Could not find an .application file.  Aborting.");
-                        return true;
+                        return null;
                     }
                 }
             }
-            return false;
+            return res;
         }
 
         private static void LoadUnknownFile(string file)
