@@ -37,7 +37,7 @@ namespace ClickMac
     </dict>*/
         #endregion
 
-        public static void AssociateFile(XEleDict fa)
+        public static void AssociateFile(XEleDict fa, Manifest application)
         {
             var ext = fa["extension"].TrimStart('.');
             if (File.Exists(infoPlist)) // OSX is the only one who cares about plists.
@@ -51,13 +51,13 @@ namespace ClickMac
                 catch (UnauthorizedAccessException)
                 {
                     Console.WriteLine("Cannot write to Registry.  Elevating.");
-                    DoElevate(fa, ext);
+                    DoElevate(fa, ext, application);
                 }
             }
-            AssociateInternal(fa);
+            AssociateInternal(fa, application);
         }
 
-        private static void DoElevate(XEleDict fa, string ext)
+        private static void DoElevate(XEleDict fa, string ext, Manifest application)
         {
             File.WriteAllText("assoc.xml", fa.inner.ToString());
             Process process = Process.Start(new ProcessStartInfo
@@ -65,7 +65,7 @@ namespace ClickMac
                 FileName = Assembly.GetEntryAssembly().Location,
                 UseShellExecute = true,
                 Verb = "runas",
-                Arguments = String.Format("-associate {0}", Loading.entry.DeploymentProviderUrl)
+                Arguments = String.Format("-associate {0}", application.Entry.DeploymentProviderUrl)
             });
             if (process != null)
             {
@@ -73,14 +73,14 @@ namespace ClickMac
             }
         }
 
-        private static void AssociateInternal(XEleDict fa)
+        private static void AssociateInternal(XEleDict fa, Manifest application)
         {
             Dictionary<string, string> data;
             if (File.Exists("assocs.plist"))
                 data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
             else
                 data = new Dictionary<string, string>();
-            data[fa["extension"]] = Loading.entry.DeploymentProviderUrl;
+            data[fa["extension"]] = application.Entry.DeploymentProviderUrl;
             try
             {
                 Plist.writeXml(data, "assocs.plist");
@@ -140,7 +140,7 @@ namespace ClickMac
         {
             var key = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(fa["progid"]);
             key.SetValue("", fa["description"], Microsoft.Win32.RegistryValueKind.String);
-            key.SetValue("DeploymentProviderUrl", Loading.entry.DeploymentProviderUrl);
+//            key.SetValue("DeploymentProviderUrl", Loading.entry.DeploymentProviderUrl);
             string[] subs = new string[] { "shell", "open", "command" };
             foreach (var k in subs)
                 key = key.CreateSubKey(k);
@@ -219,8 +219,6 @@ namespace ClickMac
                         return new OperatingSystem (PlatformID.MacOSX, Environment.OSVersion.Version);
                     else
                         return Environment.OSVersion;
-                    break;
-
                 case PlatformID.MacOSX: // Wow, they actually got it!
                                         // Not going to ever get called, because of this code:
                     // https://github.com/mono/mono/blob/9e396e4022a4eefbcdeeae1d86c03afbf04043b7/mcs/class/corlib/System/Environment.cs#L239
