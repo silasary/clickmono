@@ -40,7 +40,10 @@ namespace ClickMac
         }
         public static string getUrlFolder(string url)
         {
-            return url.Substring(0, url.LastIndexOf('/'));
+            if (Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute))
+                return url.Substring(0, url.LastIndexOf('/'));
+            else
+                return Path.GetDirectoryName(url);
         }
         public static string FixFileSeperator(string path)
         {
