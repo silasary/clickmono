@@ -24,19 +24,16 @@ namespace ClickMac
 
         public static Manifest LoadApplicationManifest(string manifestUri)
         {
-            Console.WriteLine("Loading {0}", manifestUri);
+            Log("Loading {0}", manifestUri);
             var wd = Environment.CurrentDirectory;
             if (!Loading.PortableMode)
                 Environment.CurrentDirectory = Platform.GetLibraryLocation( );
 
             var application = new Manifest(manifestUri);
             application.ProcessDependencies();
-            //entry = application.entry;
 
             Environment.CurrentDirectory = wd;
             return application;
         }
-
-        //public static Program.EntryPoint entry { get { return Program.entry; } set { Program.entry = value; } }
     }
 }
