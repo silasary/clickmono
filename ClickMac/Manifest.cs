@@ -11,7 +11,34 @@ namespace ClickMac
 {
     public class Manifest
     {
-        enum ns { asmv1, asmv2, asmv3, cov1, cov2, dsig }
+        /// <summary>
+        /// Namespaces
+        /// </summary>
+        enum ns { /// <summary>
+                  /// urn:schemas-microsoft-com:asm.v1
+                  /// </summary>
+            asmv1,
+            /// <summary>
+            /// urn:schemas-microsoft-com:asm.v2
+            /// </summary>
+            asmv2,
+            /// <summary>
+            /// urn:schemas-microsoft-com:asm.v3
+            /// </summary>
+            asmv3,
+            /// <summary>
+            /// urn:schemas-microsoft-com:clickonce.v1
+            /// </summary>
+            cov1,
+            /// <summary>
+            /// urn:schemas-microsoft-com:clickonce.v2
+            /// </summary>
+            cov2,
+            /// <summary>
+            /// http://www.w3.org/2000/09/xmldsig#
+            /// </summary>
+            dsig
+        }
         private static XName xname(string localName, ns Ns)
         {
             string NameSpace = "";
@@ -40,10 +67,8 @@ namespace ClickMac
         }
         public static string getUrlFolder(string url)
         {
-            if (Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute))
-                return url.Substring(0, url.LastIndexOf('/'));
-            else
-                return Path.GetDirectoryName(url);
+            return new Uri(url).ToString().Substring(0, url.LastIndexOf('/'));
+
         }
         public static string FixFileSeperator(string path)
         {
@@ -68,31 +93,52 @@ namespace ClickMac
             Subfolder = subfolder;
             Location = Uri;
             Xml = XDocument.Load(Uri);
-            VerifySignature();
 
             DiskLocation = Xml.Root.Element(xname("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
 
             var deployment = Xml.Root.Element(xname("deployment", ns.asmv2));
             if (deployment != null && deployment.Element(xname("deploymentProvider", ns.asmv2)) != null)
             {
-                Location = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
-                entry.DeploymentProviderUrl = Location;
+                UpdateManifest(deployment);
+            }
+        }
+
+        private void UpdateManifest(XElement deployment)
+        {
+            var updateLocation = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
+
+            var PublisherIdentity = Xml.Root.Element(xname("publisherIdentity", ns.asmv2));
+            if (PublisherIdentity == null)
+            {
+                // Deployed with no security. Blindly update.
+                Location = updateLocation;
                 XDocument newManifest = null;
                 try
                 {
                     Loading.Log("Getting updated manifest from {0}", Location);
-                    newManifest = XDocument.Load(new WebClient().OpenRead(Location));
+                    newManifest = XDocument.Load(new WebClient().OpenRead(Location), LoadOptions.PreserveWhitespace | LoadOptions.SetBaseUri);
                     newManifest.Save(DiskLocation);
+                    Xml = newManifest;
                 }
                 catch (WebException)
                 {
                     Loading.Log("Getting manifest failed. Starting in Offline Mode");
-                    newManifest = XDocument.Load(DiskLocation);
                 }
             }
+            else
+            {
+                if (!VerifySignature(true))
+                {
+                    Loading.Log("Failed to validate XML signature");
+                    return;
+                }
+                Xml = XDocument.Load(DiskLocation);
+            }                
+            entry.DeploymentProviderUrl = Location;
+            
         }
 
-        private bool VerifySignature()
+        private bool VerifySignature(bool Update)
         {
             var xdoc = new XmlDocument();
             xdoc.PreserveWhitespace = true;
@@ -101,11 +147,33 @@ namespace ClickMac
 
             XmlNodeList nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
             if (nodeList.Count == 0)
-                return false;
+                return false; // This code should never have been called. Something's probably wrong.  Fail it.
             signed.LoadXml((XmlElement)nodeList[0]);
             AsymmetricAlgorithm key = null;
-            var res = signed.CheckSignatureReturningKey(out key);
-            return res;
+            var validSignature = signed.CheckSignatureReturningKey(out key);
+            if (validSignature && Update)
+            {
+                var updatedLocation = 
+                    (xdoc.GetElementsByTagName("deployment")[0] as XmlElement)
+                         .GetElementsByTagName("deploymentProvider")[0].Attributes["codebase"].Value;
+
+                xdoc = new XmlDocument();
+                xdoc.PreserveWhitespace = true;
+                xdoc.Load(updatedLocation);
+                signed = new SignedXml(xdoc);
+
+                nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
+                if (nodeList.Count == 0)
+                    return false; // This code should never have been called. Something's probably wrong.  Fail it.
+                signed.LoadXml((XmlElement)nodeList[0]);
+                validSignature = signed.CheckSignatureReturningKey(out key);
+                if (validSignature)
+                {
+                    xdoc.Save(DiskLocation);
+                    Location = updatedLocation;
+                }
+            }
+            return validSignature;
         }
 
         public void ProcessDependencies()
@@ -146,7 +214,11 @@ namespace ClickMac
                     downloaded = true;
                 }
                 else
+                {
+                    if (File.Exists(filename + "._"))
+                        File.Delete(filename + "._");
                     File.Move(filename, filename + "._");
+                }
             }
             if (!downloaded)
             {

@@ -13,10 +13,14 @@ namespace ClickMac
         internal static Manifest DoArgs(ref string[] args)
         {
             Manifest res = null;
-            if (args.Length >= 1 && args[0] == "-associate") // Called by Platform.DoElevate().
+            if (args.Length > 1 && args[0] == "-associate") // Called by Platform.DoElevate().
             {
                 res = Loading.LoadApplicationManifest(Platform.GetLocalManifest(args[1]));
                 return null; // Abort - We can't accidentally run the app with Elevated Permissions.
+            }
+            else if (args.Length > 0 && args[0] == "-associate")
+            {
+                Console.WriteLine("ERROR: No manifest provided.");
             }
             else if (args.Length > 1 && args[0] == "-o")  // Called by Explorer, when the user double-clicks a file.
             {
