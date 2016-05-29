@@ -9,7 +9,7 @@ using System.Text;
 
 namespace ClickMac
 {
-    class Platform
+    static class Platform
     {
         static string infoPlist { get { return Program.infoPlist; } }
 
@@ -59,18 +59,19 @@ namespace ClickMac
 
         private static void DoElevate(XEleDict fa, string ext, Manifest application)
         {
-            File.WriteAllText("assoc.xml", fa.inner.ToString());
-            Process process = Process.Start(new ProcessStartInfo
-            {
-                FileName = Assembly.GetEntryAssembly().Location,
-                UseShellExecute = true,
-                Verb = "runas",
-                Arguments = String.Format("-associate {0}", application.Entry.DeploymentProviderUrl)
-            });
-            if (process != null)
-            {
-                process.WaitForExit();
-            }
+            //TODO: Make this better - We're currently elevating once per extension.
+            //File.WriteAllText("assoc.xml", fa.inner.ToString());
+            //Process process = Process.Start(new ProcessStartInfo
+            //{
+            //    FileName = Assembly.GetEntryAssembly().Location,
+            //    UseShellExecute = true,
+            //    Verb = "runas",
+            //    Arguments = String.Format("-associate \"{0}\"", application.Location)
+            //});
+            //if (process != null)
+            //{
+            //    process.WaitForExit();
+            //}
         }
 
         private static void AssociateInternal(XEleDict fa, Manifest application)

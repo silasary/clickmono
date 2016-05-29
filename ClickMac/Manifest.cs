@@ -145,6 +145,9 @@ namespace ClickMac
             xdoc.Load(Location);
             SignedXml signed = new SignedXml(xdoc);
 
+            var pubName = xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["name"].Value;
+            var pubHash = xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["issuerKeyHash"].Value;
+
             XmlNodeList nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
             if (nodeList.Count == 0)
                 return false; // This code should never have been called. Something's probably wrong.  Fail it.
@@ -160,11 +163,19 @@ namespace ClickMac
                 xdoc = new XmlDocument();
                 xdoc.PreserveWhitespace = true;
                 xdoc.Load(updatedLocation);
+                if (
+                    pubName != xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["name"].Value || 
+                    pubHash != xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["issuerKeyHash"].Value)
+                {
+                    // Different publisher.
+                    return false;
+                }
+
                 signed = new SignedXml(xdoc);
 
                 nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
                 if (nodeList.Count == 0)
-                    return false; // This code should never have been called. Something's probably wrong.  Fail it.
+                    return false; // Signature was removed. Don't trust new version.
                 signed.LoadXml((XmlElement)nodeList[0]);
                 validSignature = signed.CheckSignatureReturningKey(out key);
                 if (validSignature)
