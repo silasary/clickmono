@@ -64,15 +64,18 @@ namespace ClickMac
                 var manifests = Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.application");
                 var pref = manifests.FirstOrDefault(x => !Path.GetFileName(x).StartsWith("ClickMac"));
                 if (pref != null)
-                    res = Loading.LoadApplicationManifest(pref);
-                else
+                    return res = Loading.LoadApplicationManifest(pref);
+
+                manifests = Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.appref-ms");
+                pref = manifests.FirstOrDefault();
+                if (pref != null)
+                    return res = Loading.LoadApplicationManifest(File.ReadAllText(pref));
+
+                res = GetManifestFromName(Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location));
+                if (res == null)
                 {
-                    res = GetManifestFromName(Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location));
-                    if (res == null)
-                    {
-                        Console.WriteLine("Could not find an .application file.  Aborting.");
-                        return null;
-                    }
+                    Console.WriteLine("Could not find an .application file.  Aborting.");
+                    return null;
                 }
             }
             return res;

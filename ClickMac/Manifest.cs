@@ -11,64 +11,9 @@ namespace ClickMac
 {
     public class Manifest
     {
-        /// <summary>
-        /// Namespaces
-        /// </summary>
-        enum ns { /// <summary>
-                  /// urn:schemas-microsoft-com:asm.v1
-                  /// </summary>
-            asmv1,
-            /// <summary>
-            /// urn:schemas-microsoft-com:asm.v2
-            /// </summary>
-            asmv2,
-            /// <summary>
-            /// urn:schemas-microsoft-com:asm.v3
-            /// </summary>
-            asmv3,
-            /// <summary>
-            /// urn:schemas-microsoft-com:clickonce.v1
-            /// </summary>
-            cov1,
-            /// <summary>
-            /// urn:schemas-microsoft-com:clickonce.v2
-            /// </summary>
-            cov2,
-            /// <summary>
-            /// http://www.w3.org/2000/09/xmldsig#
-            /// </summary>
-            dsig
-        }
-        private static XName xname(string localName, ns Ns)
-        {
-            string NameSpace = "";
-            switch (Ns)
-            {
-                case ns.asmv1:
-                    NameSpace = "urn:schemas-microsoft-com:asm.v1";
-                    break;
-                case ns.asmv2:
-                    NameSpace = "urn:schemas-microsoft-com:asm.v2";
-                    break;
-                case ns.asmv3:
-                    NameSpace = "urn:schemas-microsoft-com:asm.v3";
-                    break;
-                case ns.cov1:
-                    NameSpace = "urn:schemas-microsoft-com:clickonce.v1";
-                    break;
-                case ns.cov2:
-                    NameSpace = "urn:schemas-microsoft-com:clickonce.v2";
-                    break;
-                case ns.dsig:
-                    NameSpace = "http://www.w3.org/2000/09/xmldsig#";
-                    break;
-            }
-            return XName.Get(localName, NameSpace);
-        }
         public static string getUrlFolder(string url)
         {
-            return new Uri(url).ToString().Substring(0, url.LastIndexOf('/'));
-
+            return (url = new Uri(url).ToString()).Substring(0, url.LastIndexOf('/'));
         }
         public static string FixFileSeperator(string path)
         {
@@ -94,10 +39,10 @@ namespace ClickMac
             Location = Uri;
             Xml = XDocument.Load(Uri);
 
-            DiskLocation = Xml.Root.Element(xname("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
+            DiskLocation = Xml.Root.Element(Namespace.XName("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
 
-            var deployment = Xml.Root.Element(xname("deployment", ns.asmv2));
-            if (deployment != null && deployment.Element(xname("deploymentProvider", ns.asmv2)) != null)
+            var deployment = Xml.Root.Element(Namespace.XName("deployment", ns.asmv2));
+            if (deployment != null && deployment.Element(Namespace.XName("deploymentProvider", ns.asmv2)) != null)
             {
                 UpdateManifest(deployment);
             }
@@ -105,9 +50,9 @@ namespace ClickMac
 
         private void UpdateManifest(XElement deployment)
         {
-            var updateLocation = deployment.Element(xname("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
+            var updateLocation = deployment.Element(Namespace.XName("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
 
-            var PublisherIdentity = Xml.Root.Element(xname("publisherIdentity", ns.asmv2));
+            var PublisherIdentity = Xml.Root.Element(Namespace.XName("publisherIdentity", ns.asmv2));
             if (PublisherIdentity == null)
             {
                 // Deployed with no security. Blindly update.
@@ -190,7 +135,7 @@ namespace ClickMac
         public void ProcessDependencies()
         {
             var path = getUrlFolder(Location);
-            foreach (var dependency in Xml.Root.Elements(xname("dependency", ns.asmv2)))
+            foreach (var dependency in Xml.Root.Elements(Namespace.XName("dependency", ns.asmv2)))
             {
                 ProcessDependency(dependency, path);
             }
@@ -198,11 +143,11 @@ namespace ClickMac
 
         private void ProcessDependency(XElement dependency, string path)
         {
-            var dependentAssembly = dependency.Element(xname("dependentAssembly", ns.asmv2));
+            var dependentAssembly = dependency.Element(Namespace.XName("dependentAssembly", ns.asmv2));
             if (dependentAssembly == null || dependentAssembly.Attribute("dependencyType").Value != "install")
                 return;
             var codebase = FixFileSeperator(dependentAssembly.Attribute("codebase").Value);
-            var assemblyIdentity = dependentAssembly.Element(xname("assemblyIdentity", ns.asmv2));
+            var assemblyIdentity = dependentAssembly.Element(Namespace.XName("assemblyIdentity", ns.asmv2));
             string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
             Directory.CreateDirectory(version);
             try
@@ -265,26 +210,26 @@ namespace ClickMac
                 Children.Add(manifest);
                 entry.Import(manifest.entry);
             }
-            foreach (var file in Xml.Root.Elements(xname("file", ns.asmv2)))
+            foreach (var file in Xml.Root.Elements(Namespace.XName("file", ns.asmv2)))
             {
                 GetFile(file, getUrlFolder(path + "/" + codebase.Replace('\\', '/')));
             }
-            foreach (var fa in Xml.Root.Elements(xname("fileAssociation", ns.cov1)))
+            foreach (var fa in Xml.Root.Elements(Namespace.XName("fileAssociation", ns.cov1)))
             {
                 Platform.AssociateFile(fa, this);
             }
-            var entryPoint = Xml.Root.Element(xname("entryPoint", ns.asmv2));
+            var entryPoint = Xml.Root.Element(Namespace.XName("entryPoint", ns.asmv2));
             if (entryPoint != null)
             {
-                entry.executable = entryPoint.Element(xname("commandLine", ns.asmv2)).Attribute("file").Value;
+                entry.executable = entryPoint.Element(Namespace.XName("commandLine", ns.asmv2)).Attribute("file").Value;
                 entry.folder = new DirectoryInfo(Subfolder ?? version).FullName; // Alsolute reference.
                 entry.version = assemblyIdentity.Attribute("version").Value;
-                entry.displayName = entryPoint.Element(xname("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
+                entry.displayName = entryPoint.Element(Namespace.XName("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
             }
-            var description = Xml.Root.Element(xname("description", ns.asmv1));
+            var description = Xml.Root.Element(Namespace.XName("description", ns.asmv1));
             if (description != null)
             {
-                var iconFile = description.Attribute(xname("iconFile", ns.asmv2));
+                var iconFile = description.Attribute(Namespace.XName("iconFile", ns.asmv2));
                 if (iconFile != null && !string.IsNullOrWhiteSpace(iconFile.Value))
                 {
                     if (File.Exists(Path.Combine(Subfolder ?? version, iconFile.Value)))
