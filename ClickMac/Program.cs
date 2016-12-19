@@ -100,7 +100,7 @@ namespace ClickMac
                 if (File.Exists("Kamahl.Deployment.dll.old"))
                     File.Delete("Kamahl.Deployment.dll.old");
                 // TODO: Find a better deployment URL than my Dropbox account
-                var update = Loading.LoadApplicationManifest("https://dl.dropbox.com/u/4187827/ClickOnce/ClickMac.application");
+                var update = Loading.LoadApplicationManifest("https://katelyngigante.com/deployment/clickmono/ClickMac.application");
                 if (update.Entry.executable == null)
                     return false;
                 if (!File.Exists("ClickMac.version") || update.Entry.version != File.ReadAllText("ClickMac.version"))
