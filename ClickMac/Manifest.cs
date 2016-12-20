@@ -11,7 +11,7 @@ namespace ClickMac
 {
     public class Manifest
     {
-        public static string getUrlFolder(string url)
+        public static string GetUrlFolder(string url)
         {
             return (url = new Uri(url).ToString()).Substring(0, url.LastIndexOf('/'));
         }
@@ -85,8 +85,10 @@ namespace ClickMac
 
         private bool VerifySignature(bool Update)
         {
-            var xdoc = new XmlDocument();
-            xdoc.PreserveWhitespace = true;
+            var xdoc = new XmlDocument()
+            {
+                PreserveWhitespace = true
+            };
             xdoc.Load(Location);
             SignedXml signed = new SignedXml(xdoc);
 
@@ -134,7 +136,7 @@ namespace ClickMac
 
         public void ProcessDependencies()
         {
-            var path = getUrlFolder(Location);
+            var path = GetUrlFolder(Location);
             foreach (var dependency in Xml.Root.Elements(Namespace.XName("dependency", ns.asmv2)))
             {
                 ProcessDependency(dependency, path);
@@ -181,6 +183,7 @@ namespace ClickMac
                 try
                 {
                     Loading.Log("Getting Dependency {0}", codebase);
+                    // TODO:  If codebase is an absolute URL, deal with it nicely.
                     new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
                 }
                 catch (WebException)
@@ -212,7 +215,7 @@ namespace ClickMac
             }
             foreach (var file in Xml.Root.Elements(Namespace.XName("file", ns.asmv2)))
             {
-                GetFile(file, getUrlFolder(path + "/" + codebase.Replace('\\', '/')));
+                GetFile(file, GetUrlFolder(path + "/" + codebase.Replace('\\', '/')));
             }
             foreach (var fa in Xml.Root.Elements(Namespace.XName("fileAssociation", ns.cov1)))
             {
