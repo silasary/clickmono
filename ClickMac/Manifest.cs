@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace ClickMac
 {
@@ -65,8 +66,23 @@ namespace ClickMac
                     newManifest.Save(DiskLocation);
                     Xml = newManifest;
                 }
-                catch (WebException)
+                catch (WebException c)
                 {
+                    if (c.Status == WebExceptionStatus.SecureChannelFailure) {
+                        // Swear at mono.
+                        // Import the Mozilla trusted Root Authorities.
+                        var mozroots = Process.Start ("mozroots", "--import --sync");
+                        mozroots.WaitForExit ();
+                        // Try again
+                        try {
+                            newManifest = XDocument.Load (new WebClient ().OpenRead (Location), LoadOptions.PreserveWhitespace | LoadOptions.SetBaseUri);
+                            newManifest.Save (DiskLocation);
+                            Xml = newManifest;
+                            entry.DeploymentProviderUrl = Location;
+                            return;
+                        } catch (WebException) {
+                        }
+                    }
                     Loading.Log("Getting manifest failed. Starting in Offline Mode");
                 }
             }
