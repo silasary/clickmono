@@ -3,10 +3,12 @@ using System.Xml.Linq;
 using System.Net;
 using System.IO;
 using System.Collections.Generic;
-using System.Security.Cryptography.Xml;
+#if NET40
 using System.Xml;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
 using System.Diagnostics;
+#endif
 
 namespace ClickMac
 {
@@ -68,7 +70,8 @@ namespace ClickMac
                 }
                 catch (WebException c)
                 {
-                    if (c.Status == WebExceptionStatus.SecureChannelFailure) {
+#if NET40
+                    if (c.Status == WebExceptionStatus.SecureChannelFailure && Platform.IsRunningOnMono) {
                         // Swear at mono.
                         // Import the Mozilla trusted Root Authorities.
                         var mozroots = Process.Start ("mozroots", "--import --sync");
@@ -83,6 +86,7 @@ namespace ClickMac
                         } catch (WebException) {
                         }
                     }
+#endif
                     Loading.Log("Getting manifest failed. Starting in Offline Mode");
                 }
             }
@@ -101,6 +105,7 @@ namespace ClickMac
 
         private bool VerifySignature(bool Update)
         {
+#if NET40
             var xdoc = new XmlDocument()
             {
                 PreserveWhitespace = true
@@ -148,6 +153,9 @@ namespace ClickMac
                 }
             }
             return validSignature;
+#else
+            return true; // HACK: Waiting for https://github.com/dotnet/corefx/issues/4278
+#endif
         }
 
         public void ProcessDependencies()

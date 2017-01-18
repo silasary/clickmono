@@ -11,6 +11,8 @@ namespace ClickMac
 {
     static class Platform
     {
+        public static readonly bool IsRunningOnMono = (Type.GetType("Mono.Runtime") != null);
+
         static string infoPlist { get { return Program.infoPlist; } }
 
         #region docs
