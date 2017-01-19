@@ -45,7 +45,7 @@ namespace ClickMac
             {
                 Xml = XDocument.Load(Uri);
             }
-            catch (WebException c) when (Platform.IsRunningOnMono)
+            catch (WebException) when (Platform.IsRunningOnMono)
             {
                 using (var curl = new CurlWrapper())
                 {
@@ -81,7 +81,7 @@ namespace ClickMac
                     newManifest.Save(DiskLocation);
                     Xml = newManifest;
                 }
-                catch (WebException c) when (Platform.IsRunningOnMono)
+                catch (WebException) when (Platform.IsRunningOnMono)
                 {
                     using (var curl = new CurlWrapper())
                     {
@@ -222,7 +222,7 @@ namespace ClickMac
                     // TODO:  If codebase is an absolute URL, deal with it nicely.
                     new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
                 }
-                catch (WebException c) when (Platform.IsRunningOnMono)
+                catch (WebException) when (Platform.IsRunningOnMono)
                 {
                     using (var curl = new CurlWrapper())
                     {
@@ -237,7 +237,7 @@ namespace ClickMac
                     {
                         new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/') + ".deploy", filename);
                     }
-                    catch (WebException c) when (Platform.IsRunningOnMono)
+                    catch (WebException) when (Platform.IsRunningOnMono)
                     {
                         using (var curl = new CurlWrapper())
                         {
@@ -326,7 +326,7 @@ namespace ClickMac
                 {
                     new WebClient().DownloadFile(path + "/" + name.Replace('\\', '/'), filename);
                 }
-                catch (WebException c) when (Platform.IsRunningOnMono)
+                catch (WebException) when (Platform.IsRunningOnMono)
                 {
                     using (var curl = new CurlWrapper())
                     {
