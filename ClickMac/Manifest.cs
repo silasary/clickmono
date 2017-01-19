@@ -95,7 +95,9 @@ namespace ClickMac
                 }
                 catch (WebException e) {
                     Loading.Log("Getting manifest failed.");
+                    Loading.Log($"  {e.Status}");
                     Loading.Log($"      {e}");
+
                 }
             }
             else
