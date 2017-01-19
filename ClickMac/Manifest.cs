@@ -40,8 +40,20 @@ namespace ClickMac
         {
             Subfolder = subfolder;
             Location = Uri;
-            Xml = XDocument.Load(Uri);
-
+            Loading.Log($"Loading Manifest from {Uri}");
+            try
+            {
+                Xml = XDocument.Load(Uri);
+            }
+            catch (WebException c) when (c.Status == WebExceptionStatus.SecureChannelFailure && Platform.IsRunningOnMono)
+            {
+                using (var curl = new CurlWrapper())
+                {
+                    FileInfo tempFile = curl.GetFile(Location);
+                    FileStream fileStream = tempFile.OpenRead();
+                    Xml = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace);
+                }
+            }
             DiskLocation = Xml.Root.Element(Namespace.XName("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
 
             var deployment = Xml.Root.Element(Namespace.XName("deployment", ns.asmv2));
@@ -61,6 +73,7 @@ namespace ClickMac
                 // Deployed with no security. Blindly update.
                 Location = updateLocation;
                 XDocument newManifest = null;
+
                 try
                 {
                     Loading.Log("Getting updated manifest from {0}", Location);
@@ -68,26 +81,20 @@ namespace ClickMac
                     newManifest.Save(DiskLocation);
                     Xml = newManifest;
                 }
-                catch (WebException c)
+                catch (WebException c) when (c.Status == WebExceptionStatus.SecureChannelFailure && Platform.IsRunningOnMono)
                 {
-#if NET40
-                    if (c.Status == WebExceptionStatus.SecureChannelFailure && Platform.IsRunningOnMono) {
-                        // Swear at mono.
-                        // Import the Mozilla trusted Root Authorities.
-                        var mozroots = Process.Start ("mozroots", "--import --sync");
-                        mozroots.WaitForExit ();
-                        // Try again
-                        try {
-                            newManifest = XDocument.Load (new WebClient ().OpenRead (Location), LoadOptions.PreserveWhitespace | LoadOptions.SetBaseUri);
-                            newManifest.Save (DiskLocation);
-                            Xml = newManifest;
-                            entry.DeploymentProviderUrl = Location;
-                            return;
-                        } catch (WebException) {
-                        }
+                    using (var curl = new CurlWrapper())
+                    {
+                        FileInfo tempFile = curl.GetFile(Location);
+                        FileStream fileStream = tempFile.OpenRead();
+                        newManifest = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace | LoadOptions.SetBaseUri);
+                        newManifest.Save(DiskLocation);
+                        fileStream.Close();
+                        tempFile.Delete();
                     }
-#endif
-                    Loading.Log("Getting manifest failed. Starting in Offline Mode");
+                }
+                catch (WebException) {
+                    Loading.Log("Getting manifest failed.");
                 }
             }
             else
@@ -210,11 +217,29 @@ namespace ClickMac
                     // TODO:  If codebase is an absolute URL, deal with it nicely.
                     new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
                 }
+                catch (WebException c) when (c.Status == WebExceptionStatus.SecureChannelFailure && Platform.IsRunningOnMono)
+                {
+                    using (var curl = new CurlWrapper())
+                    {
+                        FileInfo tempFile = curl.GetFile(Location);
+                        tempFile.MoveTo(filename);
+                        Console.WriteLine(tempFile.FullName);
+                    }
+                }
                 catch (WebException)
                 {
                     try
                     {
                         new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/') + ".deploy", filename);
+                    }
+                    catch (WebException c) when (c.Status == WebExceptionStatus.SecureChannelFailure && Platform.IsRunningOnMono)
+                    {
+                        using (var curl = new CurlWrapper())
+                        {
+                            FileInfo tempFile = curl.GetFile(Location);
+                            tempFile.MoveTo(filename);
+                            Console.WriteLine(tempFile.FullName);
+                        }
                     }
                     catch (WebException)
                     {
@@ -295,6 +320,15 @@ namespace ClickMac
                 try
                 {
                     new WebClient().DownloadFile(path + "/" + name.Replace('\\', '/'), filename);
+                }
+                catch (WebException c) when (c.Status == WebExceptionStatus.SecureChannelFailure && Platform.IsRunningOnMono)
+                {
+                    using (var curl = new CurlWrapper())
+                    {
+                        FileInfo tempFile = curl.GetFile(Location);
+                        tempFile.MoveTo(filename);
+                        Console.WriteLine(tempFile.FullName);
+                    }
                 }
                 catch (WebException)
                 {

@@ -25,6 +25,10 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <InstallUrl>https://katelyngigante.com/deployment/clickmono/</InstallUrl>
+    <SupportUrl>https://github.com/silasary/clickmono/</SupportUrl>
+    <ErrorReportUrl>https://github.com/silasary/clickmono/</ErrorReportUrl>
+    <ProductName>ClickMono</ProductName>
+    <PublisherName>Katelyn Gigante</PublisherName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <ApplicationRevision>31</ApplicationRevision>
@@ -82,6 +86,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CurlWrapper.cs" />
     <Compile Include="Namespace.cs" />
     <Compile Include="PreLoading.cs" />
     <Compile Include="Loading.cs" />
