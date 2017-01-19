@@ -93,8 +93,9 @@ namespace ClickMac
                         tempFile.Delete();
                     }
                 }
-                catch (WebException) {
+                catch (WebException e) {
                     Loading.Log("Getting manifest failed.");
+                    Loading.Log($"      {e}");
                 }
             }
             else
@@ -127,16 +128,17 @@ namespace ClickMac
             if (nodeList.Count == 0)
                 return false; // This code should never have been called. Something's probably wrong.  Fail it.
             signed.LoadXml((XmlElement)nodeList[0]);
-            AsymmetricAlgorithm key = null;
-            var validSignature = signed.CheckSignatureReturningKey(out key);
+            var validSignature = signed.CheckSignatureReturningKey(out var key);
             if (validSignature && Update)
             {
                 var updatedLocation = 
                     (xdoc.GetElementsByTagName("deployment")[0] as XmlElement)
                          .GetElementsByTagName("deploymentProvider")[0].Attributes["codebase"].Value;
 
-                xdoc = new XmlDocument();
-                xdoc.PreserveWhitespace = true;
+                xdoc = new XmlDocument()
+                {
+                    PreserveWhitespace = true
+                };
                 xdoc.Load(updatedLocation);
                 if (
                     pubName != xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["name"].Value || 
