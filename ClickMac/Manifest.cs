@@ -128,7 +128,8 @@ namespace ClickMac
             if (nodeList.Count == 0)
                 return false; // This code should never have been called. Something's probably wrong.  Fail it.
             signed.LoadXml((XmlElement)nodeList[0]);
-            var validSignature = signed.CheckSignatureReturningKey(out var key);
+            AsymmetricAlgorithm key;
+            var validSignature = signed.CheckSignatureReturningKey(out key);
             if (validSignature && Update)
             {
                 var updatedLocation = 
