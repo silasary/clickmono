@@ -68,13 +68,12 @@ namespace ClickMac
             var tmp = Path.GetTempFileName();
             try
             {
-                // HACK: -k disables TLS verification.  We should instead load the mozroots cert store.
-                // !!!!!FIX THIS ASAP!!!!!
-                var psi = new ProcessStartInfo(curlPath, $"-k {Url} -o {tmp}")
+                var args = $"{Url} -o {tmp}";
+                var psi = new ProcessStartInfo(curlPath, args)
                 {
                     UseShellExecute = false
                 };
-                Loading.Log($"> curl -k {Url} -o {tmp}");
+                Loading.Log($"> curl {args}");
                 Process.Start(psi).WaitForExit();
             }
             catch (Win32Exception) when (curlPath == "curl")
