@@ -74,6 +74,7 @@ namespace ClickMac
                 {
                     UseShellExecute = false
                 };
+                Loading.Log($"> curl -k {Url} -o {tmp}");
                 Process.Start(psi).WaitForExit();
             }
             catch (Win32Exception) when (curlPath == "curl")
