@@ -23,7 +23,7 @@
     <UpdateIntervalUnits>Days</UpdateIntervalUnits>
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
+    <MapFileExtensions>false</MapFileExtensions>
     <InstallUrl>http://katelyngigante.com/deployment/clickmono/</InstallUrl>
     <SupportUrl>https://github.com/silasary/clickmono/</SupportUrl>
     <ErrorReportUrl>https://github.com/silasary/clickmono/</ErrorReportUrl>
@@ -31,7 +31,7 @@
     <PublisherName>Katelyn Gigante</PublisherName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>34</ApplicationRevision>
+    <ApplicationRevision>35</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
