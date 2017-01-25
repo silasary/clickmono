@@ -18,6 +18,7 @@ namespace Packager
 
     public class ManifestFile
     {
+
         public string path { get; set; }
 
         public string name { get; set; }
@@ -31,6 +32,10 @@ namespace Packager
         public string digestMethod { get; set; }
 
         public string digestValue { get; set; }
+
+        public string Product { get; set; }
+
+        public string Publisher { get; set; }
 
         public long size { get; set; }
     }
