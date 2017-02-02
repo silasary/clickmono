@@ -36,9 +36,9 @@ namespace Packager
             var minor = date.ToString("ddHH");
             var patch = date.ToString("mmss");
             var build = Environment.GetEnvironmentVariable("BUILD_NUMBER") ?? "0";
-
             var manifest = new Manifest();
             manifest.version = major + "." + minor + "." + patch + "." + build;
+            target = target.CreateSubdirectory(manifest.version);
             EnumerateFiles(directory, manifest);
             manifest.entryPoint = manifest.files.Single(n => n.name == Path.GetFileName(project));
             var xml = GenerateManifest(directory, manifest);
@@ -51,6 +51,7 @@ namespace Packager
             }
             xml = GenerateApplicationManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
+            File.Copy(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), Path.Combine(directory.FullName, "_publish", Path.GetFileName(project) + ".application"), true);
         }
 
         private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)
