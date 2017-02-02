@@ -47,7 +47,7 @@ namespace Packager
 
             foreach (var file in manifest.files)
             {
-                File.Copy(file.name, Path.Combine(target.FullName, file.name), true);
+                File.Copy(Path.Combine(directory.FullName, file.name), Path.Combine(target.FullName, file.name), true);
             }
             xml = GenerateApplicationManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
