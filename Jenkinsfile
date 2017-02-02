@@ -4,10 +4,10 @@ node {
    
     stage 'Build'
 	msbuild()
-	mono("Packager/bin/Debug/Packager.exe", "Packager/bin/Debug/Packager.exe")
+	mono("Packager/bin/Release/Packager.exe", "Packager/bin/Release/Packager.exe")
     
     stage 'Archive'
-    archive '**/bin/Debug/'
+    archive '**/bin/Release/'
 
 	stage 'Post-Build'
 	step([$class: 'WarningsPublisher', canComputeNew: false, canResolveRelativePaths: false, consoleParsers: [[parserName: 'MSBuild']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''])
