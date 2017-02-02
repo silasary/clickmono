@@ -3,16 +3,8 @@ node {
     checkout scm
    
     stage 'Build'
-    if (isUnix())
-    {
-        sh 'nuget restore'
-        sh 'xbuild'
-    }
-    else
-    {
-      bat 'nuget restore'
-      bat 'msbuild'
-    }
+	msbuild()
+	mono("Packager/bin/Debug/Packager.exe", "Packager/bin/Debug/Packager.exe")
     
     stage 'Archive'
     archive '**/bin/Debug/'
