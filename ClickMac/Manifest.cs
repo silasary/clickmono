@@ -216,47 +216,8 @@ namespace ClickMac
             }
             if (!downloaded)
             {
-                try
-                {
-                    Loading.Log("Getting Dependency {0}", codebase);
-                    // TODO:  If codebase is an absolute URL, deal with it nicely.
-                    new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/'), filename);
-                }
-                catch (WebException) when (Platform.IsRunningOnMono)
-                {
-                    using (var curl = new CurlWrapper())
-                    {
-                        FileInfo tempFile = curl.GetFile(Location);
-                        tempFile.MoveTo(filename);
-                        Console.WriteLine(tempFile.FullName);
-                    }
-                }
-                catch (WebException)
-                {
-                    try
-                    {
-                        new WebClient().DownloadFile(path + "/" + codebase.Replace('\\', '/') + ".deploy", filename);
-                    }
-                    catch (WebException) when (Platform.IsRunningOnMono)
-                    {
-                        using (var curl = new CurlWrapper())
-                        {
-                            FileInfo tempFile = curl.GetFile(Location);
-                            tempFile.MoveTo(filename);
-                            Console.WriteLine(tempFile.FullName);
-                        }
-                    }
-                    catch (WebException)
-                    {
-                        if (File.Exists(filename + "._"))
-                            File.Move(filename + "._", filename);
-                        else
-                        {
-                            Loading.Log("\tFailed to download!  Application might not work.");
-                            return;
-                        }
-                    }
-                }
+
+                DownloadFile(path, codebase, filename);
             }
             if (File.Exists(filename + "._"))
                 File.Delete(filename + "._");
@@ -301,6 +262,7 @@ namespace ClickMac
                     File.Copy(Path.Combine(".", version, Path.GetFileName(codebase)), Path.Combine(Subfolder, Path.GetFileName(codebase)));
             }
         }
+
         private void GetFile(XElement file, string path)
         {
 
@@ -357,6 +319,52 @@ namespace ClickMac
             }
         }
 
+        string DownloadFile(string path, string codebase, string filename)
+        {
+            var urls = new string[] {
+                path + "/" + codebase.Replace('\\', '/'),                                       // Expected value
+                path + "/" + codebase.Replace('\\', '/') + ".deploy",                           // Escaped value
+                path + "/" + Path.GetFileName(codebase.Replace('\\', '/')),                     // Shallow path
+                path + "/" + Path.GetFileName(codebase.Replace('\\', '/')) + ".deploy",         // Escaped Shallow path
+
+            };
+
+            foreach (var url in urls)
+            {
+                try
+                {
+                    Loading.Log("Getting Dependency {0}", codebase);
+                    // TODO:  If codebase is an absolute URL, deal with it nicely.
+                    new WebClient().DownloadFile(url, filename);
+                }
+                catch (WebException) when (Platform.IsRunningOnMono)
+                {
+                    using (var curl = new CurlWrapper())
+                    {
+                        FileInfo tempFile = curl.GetFile(url);
+                        if (tempFile == null)
+                            continue;
+                        tempFile.MoveTo(filename);
+                        Console.WriteLine(tempFile.FullName);
+                    }
+                }
+                catch (WebException)
+                {
+                    continue;
+                }
+                return filename;
+            }
+            if (File.Exists(filename + "._"))
+            {
+                File.Move(filename + "._", filename);
+                return filename;
+            }
+            else
+            {
+                Loading.Log("\tFailed to download!  Application might not work.");
+                return null;
+            }
+        }
     }
 }
 

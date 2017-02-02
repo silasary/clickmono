@@ -74,7 +74,13 @@ namespace ClickMac
                     UseShellExecute = false
                 };
                 Loading.Log($"> curl {args}");
-                Process.Start(psi).WaitForExit();
+                var curl = Process.Start(psi);
+                curl.WaitForExit();
+                if (curl.ExitCode > 0)
+                {
+                    File.Delete(tmp);
+                    return null;
+                }
             }
             catch (Win32Exception) when (curlPath == "curl")
             {
