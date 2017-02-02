@@ -74,30 +74,36 @@ namespace ClickMac
                 Location = updateLocation;
                 XDocument newManifest = null;
 
+                Loading.Log("Getting updated manifest from {0}", Location);
                 try
                 {
-                    Loading.Log("Getting updated manifest from {0}", Location);
-                    newManifest = XDocument.Load(new WebClient().OpenRead(Location), LoadOptions.PreserveWhitespace | LoadOptions.SetBaseUri);
+                    newManifest = XDocument.Load(new WebClient().OpenRead(Location), LoadOptions.PreserveWhitespace);
                     newManifest.Save(DiskLocation);
                     Xml = newManifest;
                 }
-                catch (WebException) when (Platform.IsRunningOnMono)
+                catch (WebException c) when (Platform.IsRunningOnMono && c.Status == WebExceptionStatus.SecureChannelFailure)
                 {
                     using (var curl = new CurlWrapper())
                     {
                         FileInfo tempFile = curl.GetFile(Location);
                         FileStream fileStream = tempFile.OpenRead();
-                        newManifest = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace | LoadOptions.SetBaseUri);
+                        newManifest = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace);
                         newManifest.Save(DiskLocation);
                         fileStream.Close();
                         tempFile.Delete();
                     }
                 }
-                catch (WebException e) {
+                catch (WebException e)
+                {
                     Loading.Log("Getting manifest failed.");
-                    Loading.Log($"  {e.Status}");
-                    Loading.Log($"      {e}");
+                    Loading.Log($"\t{e.Status}");
+                    Loading.Log($"\t{e}");
 
+                }
+                catch (XmlException e)
+                {
+                    Loading.Log("Getting manifest failed.");
+                    Loading.Log($"\t{e}");
                 }
             }
             else
@@ -216,7 +222,7 @@ namespace ClickMac
             }
             if (!downloaded)
             {
-
+                Loading.Log("Getting Dependency {0}", codebase);
                 DownloadFile(path, codebase, filename);
             }
             if (File.Exists(filename + "._"))
@@ -333,11 +339,11 @@ namespace ClickMac
             {
                 try
                 {
-                    Loading.Log("Getting Dependency {0}", codebase);
+                    Loading.Log($"> {url}");
                     // TODO:  If codebase is an absolute URL, deal with it nicely.
                     new WebClient().DownloadFile(url, filename);
                 }
-                catch (WebException) when (Platform.IsRunningOnMono)
+                catch (WebException c) when (Platform.IsRunningOnMono && c.Status == WebExceptionStatus.SecureChannelFailure)
                 {
                     using (var curl = new CurlWrapper())
                     {
