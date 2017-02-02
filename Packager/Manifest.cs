@@ -11,9 +11,10 @@ namespace Packager
         internal string iconFile;
         internal ManifestFile entryPoint;
 
-        public string version { get; set; }
+        public string version { get; set; } = string.Empty;
 
         public List<ManifestFile> files { get; set; }
+        public string DeploymentProviderUrl { get; internal set; } = string.Empty;
     }
 
     public class ManifestFile

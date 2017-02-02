@@ -43,14 +43,14 @@ namespace Packager
             manifest.entryPoint = manifest.files.Single(n => n.name == Path.GetFileName(project));
             var xml = GenerateManifest(directory, manifest);
             string manifestPath = Path.Combine(target.FullName, Path.GetFileName(project) + ".manifest");
-            File.WriteAllText(manifestPath, xml.ToString());
+            File.WriteAllText(manifestPath, xml.ToString(SaveOptions.OmitDuplicateNamespaces));
 
             foreach (var file in manifest.files)
             {
                 File.Copy(file.name, Path.Combine(target.FullName, file.name), true);
             }
             xml = GenerateApplicationManifest(manifest, File.ReadAllBytes(manifestPath));
-            File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString());
+            File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
         }
 
         private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)
@@ -334,32 +334,39 @@ namespace Packager
             var manifestSize = manifestBytes.Length;
             var manifestDigest = Crypto.GetSha256DigestValue(manifestBytes);
 
+            if (string.IsNullOrWhiteSpace(manifest.entryPoint.Publisher))
+                manifest.entryPoint.Publisher = Environment.UserName;
+            if (string.IsNullOrWhiteSpace(manifest.entryPoint.Product))
+                manifest.entryPoint.Product = manifest.entryPoint.name;
+
              var document = new XDocument(
                 new XDeclaration("1.0", "utf-8", null),
                 new XElement(asmv1assembly,
                     new XAttribute(XNamespace.Xmlns + "asmv1", asmv1ns),
-                    new XAttribute("xmlns", asmv2ns),
+                    new XAttribute(XNamespace.Xmlns + "asmv2", asmv2ns),
                     new XAttribute(XNamespace.Xmlns + "clickoncev2ns", clickoncev2ns),
                     new XAttribute(XNamespace.Xmlns + "dsig", dsigns),
                     new XAttribute("manifestVersion", "1.0"),
                     new XElement(asmv1assemblyIdentity,
-                        new XAttribute("name", manifest.entryPoint.name + ".application"),
+                        new XAttribute("name", Path.ChangeExtension(manifest.entryPoint.name , ".application")),
                         new XAttribute("version", manifest.version),
                         new XAttribute("publicKeyToken", "0000000000000000"),
                         new XAttribute("language", "neutral"),
                         new XAttribute("processorArchitecture", "msil")
                     ),
-                    new XElement(asmv1description
+                    new XElement(asmv1description,
+                        new XAttribute(asmv2publisher, manifest.entryPoint.Publisher),
+                        new XAttribute(asmv2product, manifest.entryPoint.Product)
                     ),
                     new XElement(asmv2deployment,
                         new XAttribute("install", "true"),
-                        new XAttribute("mapFileExtensions", "true")
-                        // TODO: Deployment Location & Update info.
-                        //new XElement(asmv2subscription,
-                        //    new XElement(asmv2update,
-                        //        new XElement(asmv2beforeApplicationStartup))),
-                        //new XElement(asmv2deploymentProvider,
-                        //    new XAttribute("codebase", (await GetDomainPrefix()) + "/jamcast/dist/" + platform + "/JamCast.application" + devdomain))
+                        new XAttribute("mapFileExtensions", "true"),
+                        new XAttribute("trustURLParameters", "true"),
+                    new XElement(asmv2subscription,
+                        new XElement(asmv2update,
+                            new XElement(asmv2beforeApplicationStartup))),
+                        new XElement(asmv2deploymentProvider,
+                            new XAttribute("codebase", manifest.DeploymentProviderUrl))
                     ),
                     new XElement(clickoncev2compatibleFrameworks,
                         new XElement(clickoncev2framework,
@@ -370,7 +377,7 @@ namespace Packager
                     new XElement(asmv2dependency,
                         new XElement(asmv2dependentAssembly,
                             new XAttribute("dependencyType", "install"),
-                            new XAttribute("codebase", manifest.version + "\\JamCast.exe.manifest"),
+                            new XAttribute("codebase", manifest.version + $"\\{manifest.entryPoint.name}.manifest"),
                             new XAttribute("size", manifestSize),
                             GetManifestAssemblyIdentity(asmv2assemblyIdentity, manifest),
                             new XElement(asmv2hash,
@@ -382,12 +389,9 @@ namespace Packager
                                 new XElement(dsigDigestValue, manifestDigest)))
                     )
                 ));
-            var description = document.Descendants(asmv1description).Single();
-            if (manifest.entryPoint.Publisher != null)
-                description.Add(new XAttribute(asmv2publisher, manifest.entryPoint.Publisher));
-            if (manifest.entryPoint.Product != null)
-                description.Add(new XAttribute(asmv2publisher, manifest.entryPoint.Product));
 
+            if (string.IsNullOrWhiteSpace(manifest.DeploymentProviderUrl))
+                document.Descendants(asmv2deploymentProvider).Single().Remove();
             return document;
         }
     }
