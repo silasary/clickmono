@@ -8,21 +8,18 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Vestris.ResourceLib;
 
 namespace Packager
 {
-    class Program
+    partial class Program
     {
         private const string CONST_HASH_TRANSFORM_IDENTITY = "urn:schemas-microsoft-com:HashTransforms.Identity";
         private const string CONST_NULL_PUBKEY = "0000000000000000";
 
         static void Main(string[] args)
         {
-            if (args.Length == 0 && Debugger.IsAttached)
-            {
-                args = new string[] { Assembly.GetExecutingAssembly().Location };
-            }
-            else if (args.Length == 0)
+            if (args.Length == 0)
             {
                 Console.WriteLine("No target specified.");
                 return;
@@ -30,6 +27,23 @@ namespace Packager
             var project = args[0];
             var directory = new DirectoryInfo(Path.GetDirectoryName(project));
             var target = directory.CreateSubdirectory("_publish");
+
+            using (var resInfo = new Vestris.ResourceLib.ResourceInfo())
+            {
+                resInfo.Load(project);
+                foreach (ResourceId id in resInfo.ResourceTypes)
+                {
+                    if (id.ResourceType != Kernel32.ResourceTypes.RT_MANIFEST)
+                        continue;
+                    foreach (Resource resource in resInfo.Resources[id])
+                    {
+                        // TODO: Store the rest of the maifest for later
+                        //((ManifestResource)resource).Manifest
+                        resource.DeleteFrom(project);
+                        Console.WriteLine($"Removing embedded manifest from {project}");
+                    }
+                }
+            }
 
             var date = DateTime.UtcNow;
             var major = date.ToString("yyMM");
@@ -131,37 +145,6 @@ namespace Packager
 
         private static XDocument GenerateManifest(DirectoryInfo directory, Manifest manifest)
         {
-            var asmv1ns = XNamespace.Get("urn:schemas-microsoft-com:asm.v1");
-            var asmv2ns = XNamespace.Get("urn:schemas-microsoft-com:asm.v2");
-            var asmv3ns = XNamespace.Get("urn:schemas-microsoft-com:asm.v3");
-            var dsigns = XNamespace.Get("http://www.w3.org/2000/09/xmldsig#");
-
-            var asmv1assembly = asmv1ns.GetName("assembly");
-            var asmv1assemblyIdentity = asmv1ns.GetName("assemblyIdentity");
-            var asmv2application = asmv2ns.GetName("application");
-            var asmv2entryPoint = asmv2ns.GetName("entryPoint");
-            var asmv2assemblyIdentity = asmv2ns.GetName("assemblyIdentity");
-            var asmv2trustInfo = asmv2ns.GetName("trustInfo");
-            var asmv2security = asmv2ns.GetName("security");
-            var asmv2applicationRequestMinimum = asmv2ns.GetName("applicationRequestMinimum");
-            var asmv2PermissionSet = asmv2ns.GetName("PermissionSet");
-            var asmv2defaultAssemblyRequest = asmv2ns.GetName("defaultAssemblyRequest");
-            var asmv2dependency = asmv2ns.GetName("dependency");
-            var asmv2dependentAssembly = asmv2ns.GetName("dependentAssembly");
-            var asmv2hash = asmv2ns.GetName("hash");
-            var asmv2file = asmv2ns.GetName("file");
-            var asmv2commandLine = asmv2ns.GetName("commandLine");
-            var asmv2dependentOS = asmv2ns.GetName("dependentOS");
-            var asmv2osVersionInfo = asmv2ns.GetName("osVersionInfo");
-            var asmv2os = asmv2ns.GetName("os");
-            var asmv3requestedPrivileges = asmv3ns.GetName("requestedPrivileges");
-            var asmv3requestedExecutionLevel = asmv3ns.GetName("requestedExecutionLevel");
-            var dsigTransforms = dsigns.GetName("Transforms");
-            var dsigTransform = dsigns.GetName("Transform");
-            var dsigAlgorithm = XName.Get("Algorithm");// dsigns.GetName("Algorithm");
-            var dsigDigestMethod = dsigns.GetName("DigestMethod");
-            var dsigDigestValue = dsigns.GetName("DigestValue");
-
             var documentElements = new List<object>
             {
                 new XAttribute(XNamespace.Xmlns + "asmv1", asmv1ns),
@@ -169,7 +152,7 @@ namespace Packager
                 new XAttribute(XNamespace.Xmlns + "asmv3ns", asmv3ns),
                 new XAttribute(XNamespace.Xmlns + "dsig", dsigns),
                 new XAttribute("manifestVersion", "1.0"),
-                GetManifestAssemblyIdentity(asmv1assemblyIdentity, manifest),
+                GetManifestAssemblyIdentity(asmv1assemblyIdentity, manifest, false),
                 new XElement(asmv2application),
                 new XElement(asmv2entryPoint,
                     GetDependencyAssemblyIdentity(asmv2assemblyIdentity, manifest.entryPoint),
@@ -253,9 +236,19 @@ namespace Packager
                 new XElement(asmv1assembly, documentElements));
         }
 
-        private static XElement GetManifestAssemblyIdentity(XName asmv1assemblyIdentity, Manifest manifest)
+        private static XElement GetManifestAssemblyIdentity(XName asmvxassemblyIdentity, Manifest manifest, bool useEntryPoint)
         {
-            return new XElement(asmv1assemblyIdentity,
+            if (useEntryPoint)
+                return new XElement(asmvxassemblyIdentity,
+                    new XAttribute("name", manifest.entryPoint.name),
+                    new XAttribute("version", manifest.entryPoint.version),
+                    new XAttribute("publicKeyToken", manifest.entryPoint.publicKeyToken ?? CONST_NULL_PUBKEY),
+                    new XAttribute("language", "neutral"),
+                    new XAttribute("processorArchitecture", "msil") // TODO: Identify Architecture
+                    //new XAttribute("type", "win32") // TODO: This too.
+                );
+            else
+                return new XElement(asmvxassemblyIdentity,
                 new XAttribute("name", manifest.entryPoint.name),
                 new XAttribute("version", manifest.version),
                 new XAttribute("publicKeyToken", CONST_NULL_PUBKEY),
@@ -286,52 +279,6 @@ namespace Packager
 
         public static XDocument GenerateApplicationManifest(Manifest manifest, byte[] manifestBytes)
         {
-            var asmv1ns = XNamespace.Get("urn:schemas-microsoft-com:asm.v1");
-            var asmv2ns = XNamespace.Get("urn:schemas-microsoft-com:asm.v2");
-            var clickoncev2ns = XNamespace.Get("urn:schemas-microsoft-com:clickonce.v2");
-            var dsigns = XNamespace.Get("http://www.w3.org/2000/09/xmldsig#");
-
-            var asmv1assembly = asmv1ns.GetName("assembly");
-            var asmv1assemblyIdentity = asmv1ns.GetName("assemblyIdentity");
-            var asmv1name = asmv1ns.GetName("name");
-            var asmv1version = asmv1ns.GetName("version");
-            var asmv1publicKeyToken = asmv1ns.GetName("publicKeyToken");
-            var asmv1language = asmv1ns.GetName("language");
-            var asmv1processorArchitecture = asmv1ns.GetName("processorArchitecture");
-            var asmv1description = asmv1ns.GetName("description");
-            var asmv2publisher = asmv2ns.GetName("publisher");
-            var asmv2product = asmv2ns.GetName("product");
-            var asmv2deployment = asmv2ns.GetName("deployment");
-            var asmv2install = asmv2ns.GetName("install");
-            var asmv2mapFileExtensions = asmv2ns.GetName("mapFileExtensions");
-            var asmv2subscription = asmv2ns.GetName("subscription");
-            var asmv2update = asmv2ns.GetName("update");
-            var asmv2beforeApplicationStartup = asmv2ns.GetName("beforeApplicationStartup");
-            var asmv2deploymentProvider = asmv2ns.GetName("deploymentProvider");
-            var asmv2codebase = asmv2ns.GetName("codebase");
-            var asmv2dependency = asmv2ns.GetName("dependency");
-            var asmv2dependentAssembly = asmv2ns.GetName("dependentAssembly");
-            var asmv2dependencyType = asmv2ns.GetName("dependencyType");
-            var asmv2size = asmv2ns.GetName("size");
-            var asmv2assemblyIdentity = asmv2ns.GetName("assemblyIdentity");
-            var asmv2name = asmv2ns.GetName("name");
-            var asmv2version = asmv2ns.GetName("version");
-            var asmv2publicKeyToken = asmv2ns.GetName("publicKeyToken");
-            var asmv2language = asmv2ns.GetName("language");
-            var asmv2processorArchitecture = asmv2ns.GetName("processorArchitecture");
-            var asmv2type = asmv2ns.GetName("type");
-            var asmv2hash = asmv2ns.GetName("hash");
-            var clickoncev2compatibleFrameworks = clickoncev2ns.GetName("compatibleFrameworks");
-            var clickoncev2framework = clickoncev2ns.GetName("framework");
-            var clickoncev2targetVersion = clickoncev2ns.GetName("targetVersion");
-            var clickoncev2profile = clickoncev2ns.GetName("profile");
-            var clickoncev2supportedRuntime = clickoncev2ns.GetName("supportedRuntime");
-            var dsigTransforms = dsigns.GetName("Transforms");
-            var dsigTransform = dsigns.GetName("Transform");
-            var dsigAlgorithm = XName.Get("Algorithm");// dsigns.GetName("Algorithm");
-            var dsigDigestMethod = dsigns.GetName("DigestMethod");
-            var dsigDigestValue = dsigns.GetName("DigestValue");
-
             var manifestSize = manifestBytes.Length;
             var manifestDigest = Crypto.GetSha256DigestValue(manifestBytes);
 
@@ -340,60 +287,65 @@ namespace Packager
             if (string.IsNullOrWhiteSpace(manifest.entryPoint.Product))
                 manifest.entryPoint.Product = manifest.entryPoint.name;
 
-             var document = new XDocument(
-                new XDeclaration("1.0", "utf-8", null),
-                new XElement(asmv1assembly,
-                    new XAttribute(XNamespace.Xmlns + "asmv1", asmv1ns),
-                    new XAttribute(XNamespace.Xmlns + "asmv2", asmv2ns),
-                    new XAttribute(XNamespace.Xmlns + "clickoncev2ns", clickoncev2ns),
-                    new XAttribute(XNamespace.Xmlns + "dsig", dsigns),
-                    new XAttribute("manifestVersion", "1.0"),
-                    new XElement(asmv1assemblyIdentity,
-                        new XAttribute("name", Path.ChangeExtension(manifest.entryPoint.name , ".application")),
-                        new XAttribute("version", manifest.version),
-                        new XAttribute("publicKeyToken", "0000000000000000"),
-                        new XAttribute("language", "neutral"),
-                        new XAttribute("processorArchitecture", "msil")
-                    ),
-                    new XElement(asmv1description,
-                        new XAttribute(asmv2publisher, manifest.entryPoint.Publisher),
-                        new XAttribute(asmv2product, manifest.entryPoint.Product)
-                    ),
-                    new XElement(asmv2deployment,
-                        new XAttribute("install", "true"),
-                        new XAttribute("mapFileExtensions", "true"),
-                        new XAttribute("trustURLParameters", "true"),
-                    new XElement(asmv2subscription,
-                        new XElement(asmv2update,
-                            new XElement(asmv2beforeApplicationStartup))),
-                        new XElement(asmv2deploymentProvider,
-                            new XAttribute("codebase", manifest.DeploymentProviderUrl))
-                    ),
-                    new XElement(clickoncev2compatibleFrameworks,
-                        new XElement(clickoncev2framework,
-                            new XAttribute("targetVersion", "4.5"),
-                            new XAttribute("profile", "Full"),
-                            new XAttribute("supportedRuntime", "4.0.30319"))
-                    ),
-                    new XElement(asmv2dependency,
-                        new XElement(asmv2dependentAssembly,
-                            new XAttribute("dependencyType", "install"),
-                            new XAttribute("codebase", manifest.version + $"\\{manifest.entryPoint.name}.manifest"),
-                            new XAttribute("size", manifestSize),
-                            GetManifestAssemblyIdentity(asmv2assemblyIdentity, manifest),
-                            new XElement(asmv2hash,
-                                new XElement(dsigTransforms,
-                                    new XElement(dsigTransform,
-                                        new XAttribute("Algorithm", "urn:schemas-microsoft-com:HashTransforms.Identity"))),
-                                new XElement(dsigDigestMethod,
-                                    new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#sha256")),
-                                new XElement(dsigDigestValue, manifestDigest)))
-                    )
-                ));
+            var document = new XDocument(
+               new XDeclaration("1.0", "utf-8", null),
+               new XElement(asmv1assembly,
+                   new XAttribute(XNamespace.Xmlns + "asmv1", asmv1ns),
+                   new XAttribute(XNamespace.Xmlns + "asmv2", asmv2ns),
+                   new XAttribute(XNamespace.Xmlns + "clickoncev2ns", clickoncev2ns),
+                   new XAttribute(XNamespace.Xmlns + "dsig", dsigns),
+                   new XAttribute("manifestVersion", "1.0"),
+                   new XElement(asmv1assemblyIdentity,
+                       new XAttribute("name", Path.ChangeExtension(manifest.entryPoint.name, ".application")),
+                       new XAttribute("version", manifest.version),
+                       new XAttribute("publicKeyToken", "0000000000000000"),
+                       new XAttribute("language", "neutral"),
+                       new XAttribute("processorArchitecture", "msil")
+                   ),
+                   ManifestDescription(manifest),
+                   new XElement(asmv2deployment,
+                       new XAttribute("install", "true"),
+                       new XAttribute("mapFileExtensions", "false"),
+                       new XAttribute("trustURLParameters", "true"),
+                   new XElement(asmv2subscription,
+                       new XElement(asmv2update,
+                           new XElement(asmv2beforeApplicationStartup))),
+                       new XElement(asmv2deploymentProvider,
+                           new XAttribute("codebase", manifest.DeploymentProviderUrl))
+                   ),
+                   new XElement(clickoncev2compatibleFrameworks,
+                       new XElement(clickoncev2framework,
+                           new XAttribute("targetVersion", "4.5"),
+                           new XAttribute("profile", "Full"),
+                           new XAttribute("supportedRuntime", "4.0.30319"))
+                   ),
+                   new XElement(asmv2dependency,
+                       new XElement(asmv2dependentAssembly,
+                           new XAttribute("dependencyType", "install"),
+                           new XAttribute("codebase", manifest.version + $"\\{manifest.entryPoint.name}.manifest"),
+                           new XAttribute("size", manifestSize),
+                           GetManifestAssemblyIdentity(asmv2assemblyIdentity, manifest, false),
+                           new XElement(asmv2hash,
+                               new XElement(dsigTransforms,
+                                   new XElement(dsigTransform,
+                                       new XAttribute("Algorithm", "urn:schemas-microsoft-com:HashTransforms.Identity"))),
+                               new XElement(dsigDigestMethod,
+                                   new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#sha256")),
+                               new XElement(dsigDigestValue, manifestDigest)))
+                   )
+               ));
 
             if (string.IsNullOrWhiteSpace(manifest.DeploymentProviderUrl))
                 document.Descendants(asmv2deploymentProvider).Single().Remove();
             return document;
+        }
+
+        private static XElement ManifestDescription(Manifest manifest)
+        {
+            return new XElement(asmv1description,
+                                    new XAttribute(asmv2publisher, manifest.entryPoint.Publisher),
+                                    new XAttribute(asmv2product, manifest.entryPoint.Product)
+                                );
         }
     }
 }
