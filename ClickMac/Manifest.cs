@@ -6,11 +6,10 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
-using System.Diagnostics;
 
 namespace ClickMac
 {
-    public class Manifest
+    internal class Manifest
     {
         public static string GetUrlFolder(string url)
         {
@@ -334,7 +333,6 @@ namespace ClickMac
                 try
                 {
                     Loading.Log($"> {url}");
-                    // TODO:  If codebase is an absolute URL, deal with it nicely.
                     new WebClient().DownloadFile(url, filename);
                 }
                 catch (WebException c) when (Platform.IsRunningOnMono && c.Status == WebExceptionStatus.SecureChannelFailure)

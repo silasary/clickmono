@@ -89,7 +89,6 @@ namespace ClickMac
         private static bool CheckForSelfUpdate(string[] args)
         {
             #if DEBUG
-            if (Debugger.IsAttached)
                 return false;
             #endif
             Environment.CurrentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -99,7 +98,6 @@ namespace ClickMac
                     File.Delete("ClickMac.old.exe");
                 if (File.Exists("Kamahl.Deployment.dll.old"))
                     File.Delete("Kamahl.Deployment.dll.old");
-                // TODO: Find a better deployment URL than my Dropbox account
                 var update = Loading.LoadApplicationManifest("https://katelyngigante.com/deployment/clickmono/ClickMac.application");
                 if (update.Entry.executable == null)
                     return false;

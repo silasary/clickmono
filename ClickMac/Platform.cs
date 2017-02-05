@@ -9,7 +9,7 @@ using System.Text;
 
 namespace ClickMac
 {
-    static class Platform
+    public static class Platform
     {
         public static readonly bool IsRunningOnMono = (Type.GetType("Mono.Runtime") != null);
 
@@ -39,7 +39,7 @@ namespace ClickMac
     </dict>*/
         #endregion
 
-        public static void AssociateFile(XEleDict fa, Manifest application)
+        internal static void AssociateFile(XEleDict fa, Manifest application)
         {
             var ext = fa["extension"].TrimStart('.');
             if (File.Exists(infoPlist)) // OSX is the only one who cares about plists.

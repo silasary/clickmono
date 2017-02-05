@@ -2,7 +2,7 @@
 
 namespace ClickMac
 {
-    public class EntryPoint
+    internal class EntryPoint
     {
         public string DeploymentProviderUrl;
 

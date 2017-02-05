@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace ClickMac
 {
-    static class Loading
+    internal static class Loading
     {
         public delegate void log(string s, params object[] args);
         public static log Log;
