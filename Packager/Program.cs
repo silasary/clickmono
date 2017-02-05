@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AsmResolver;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +9,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Vestris.ResourceLib;
 
 namespace Packager
 {
@@ -28,22 +28,7 @@ namespace Packager
             var directory = new DirectoryInfo(Path.GetDirectoryName(project));
             var target = directory.CreateSubdirectory("_publish");
 
-            using (var resInfo = new Vestris.ResourceLib.ResourceInfo())
-            {
-                resInfo.Load(project);
-                foreach (ResourceId id in resInfo.ResourceTypes)
-                {
-                    if (id.ResourceType != Kernel32.ResourceTypes.RT_MANIFEST)
-                        continue;
-                    foreach (Resource resource in resInfo.Resources[id])
-                    {
-                        // TODO: Store the rest of the maifest for later
-                        //((ManifestResource)resource).Manifest
-                        resource.DeleteFrom(project);
-                        Console.WriteLine($"Removing embedded manifest from {project}");
-                    }
-                }
-            }
+            StripManifest(project);
 
             var date = DateTime.UtcNow;
             var major = date.ToString("yyMM");
@@ -66,6 +51,15 @@ namespace Packager
             xml = GenerateApplicationManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
             File.Copy(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), Path.Combine(directory.FullName, "_publish", Path.GetFileName(project) + ".application"), true);
+        }
+
+        private static void StripManifest(string projectexe)
+        {
+            var assembly = WindowsAssembly.FromFile(projectexe);
+            foreach (var res in assembly.RootResourceDirectory.Entries)
+            {
+                // Strip manifests
+            }
         }
 
         private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)

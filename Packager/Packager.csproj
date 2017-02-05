@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsmResolver, Version=2.0.6077.30745, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AsmResolver.2.0.6077.30745\lib\net40-Client\AsmResolver.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,10 +45,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Vestris.ResourceLib, Version=1.5.328.0, Culture=neutral, PublicKeyToken=ec632d8ba5e5750d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Vestris.ResourceLib.1.5.328.0\lib\Vestris.ResourceLib.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Crypto.cs" />
