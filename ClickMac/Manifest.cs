@@ -3,12 +3,10 @@ using System.Xml.Linq;
 using System.Net;
 using System.IO;
 using System.Collections.Generic;
-#if NET40
 using System.Xml;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Diagnostics;
-#endif
 
 namespace ClickMac
 {
@@ -121,7 +119,6 @@ namespace ClickMac
 
         private bool VerifySignature(bool Update)
         {
-#if NET40
             var xdoc = new XmlDocument()
             {
                 PreserveWhitespace = true
@@ -171,9 +168,6 @@ namespace ClickMac
                 }
             }
             return validSignature;
-#else
-            return true; // HACK: Waiting for https://github.com/dotnet/corefx/issues/4278
-#endif
         }
 
         public void ProcessDependencies()
