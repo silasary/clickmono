@@ -1,18 +1,27 @@
 node {
-    stage 'Clone'
-    checkout scm
+    stage('Clone'){
+		checkout scm
+	}
 
-	stage 'Clean'
-	sh('git clean -xdff')
-   
-    stage 'Build'
-	msbuild()
-	mono("Packager/bin/Release/Packager.exe", "Packager/bin/Release/Packager.exe")
+	stage('Clean'){
+		sh('git clean -xdff')
+	}
+
+    stage('Build'){
+		msbuild()
+	}
+
+	stage('Publish'){
+		mono("Packager/bin/Release/Packager.exe", "Packager/bin/Release/Packager.exe")
+		mono("Packager/bin/Release/Packager.exe", "ClickMac/bin/Release/ClickMac.exe")
+	}
     
-    stage 'Archive'
-    archive '**/bin/Release/'
+    stage('Archive'){
+		archive '**/bin/Release/'
+	}
 
-	stage 'Post-Build'
-	step([$class: 'WarningsPublisher', canComputeNew: false, canResolveRelativePaths: false, consoleParsers: [[parserName: 'MSBuild']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''])
+	stage('Post-Build'){
+		step([$class: 'WarningsPublisher', canComputeNew: false, canResolveRelativePaths: false, consoleParsers: [[parserName: 'MSBuild']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''])
+	}
 
 }

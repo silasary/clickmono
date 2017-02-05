@@ -58,7 +58,8 @@ namespace Packager
             var assembly = WindowsAssembly.FromFile(projectexe);
             foreach (var res in assembly.RootResourceDirectory.Entries)
             {
-                // Strip manifests
+                if (res.NameId != 24) // Version
+                    continue;
             }
         }
 
