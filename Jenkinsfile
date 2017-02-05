@@ -1,6 +1,9 @@
 node {
     stage 'Clone'
     checkout scm
+
+	stage 'Clean'
+	sh('git clean -xdff')
    
     stage 'Build'
 	msbuild()
