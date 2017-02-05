@@ -22,6 +22,11 @@ namespace ClickMac
             {
                 Console.WriteLine("ERROR: No manifest provided.");
             }
+            else if (args.Length > 0 && args[0] == "--packager")
+            {
+                res = Loading.LoadApplicationManifest(@"http://ci.katelyngigante.com/job/silasary/job/clickmono/job/master/lastSuccessfulBuild/artifact/Packager/bin/Release/_publish/Packager.exe.application");
+                args = args.Skip(1).ToArray();
+            }
             else if (args.Length > 1 && args[0] == "-o")  // Called by Explorer, when the user double-clicks a file.
             {
                 args[1] = new FileInfo(args[1]).FullName; // This is stupid and redudant.  
