@@ -73,12 +73,6 @@ namespace Packager
 
             foreach (var file in directory.EnumerateFiles())
             {
-                string version = null;
-                string publicKeyToken = null;
-                string assemblyName = null;
-                string product = null;
-                string publisher = null;
-
                 if (file.Name.Contains(".vshost"))
                     continue;
 
@@ -89,32 +83,8 @@ namespace Packager
                 }
                 Console.WriteLine("Processing " + file.Name + "...");
 
-                try
-                {
-                    var asm = Assembly.LoadFile(file.FullName);
-                    assemblyName = asm.GetName().Name;
-                    version = asm.GetName().Version.ToString();
-                    publicKeyToken = BitConverter.ToString(asm.GetName().GetPublicKeyToken()).ToUpperInvariant().Replace("-", "");
-                    product = asm.GetCustomAttributes<AssemblyProductAttribute>().SingleOrDefault()?.Product;
-                    publisher = asm.GetCustomAttributes<AssemblyCompanyAttribute>().SingleOrDefault()?.Company;
-                }
-                catch (Exception e) when (!Debugger.IsAttached)
-                {
-                    Console.WriteLine($"Failed. {e.Message}");
-                }
+                manifest.files.Add(new ManifestFile(file));
 
-                manifest.files.Add(new ManifestFile
-                {
-                    Name = file.Name,
-                    AssemblyName = assemblyName,
-                    Version = version,
-                    PublicKeyToken = string.IsNullOrWhiteSpace(publicKeyToken) ? null : publicKeyToken,
-                    DigestMethod = "sha256",
-                    DigestValue = Crypto.GetSha256DigestValue(file),
-                    Size = file.Length,
-                    Product = product,
-                    Publisher = publisher,
-                });
 
             }
 
@@ -125,16 +95,7 @@ namespace Packager
                 Console.WriteLine($"Adding file {file.Name}");
                 if (file.Extension == ".ico" && string.IsNullOrEmpty(manifest.iconFile))
                     manifest.iconFile = file.Name;
-                manifest.files.Add(new ManifestFile
-                {
-                    Name = file.Name,
-                    AssemblyName = null,
-                    Version = null,
-                    PublicKeyToken = null,
-                    DigestMethod = "sha256",
-                    DigestValue = Crypto.GetSha256DigestValue(file),
-                    Size = file.Length
-                });
+                manifest.files.Add(new ManifestFile(file));
             }
         }
 
@@ -260,7 +221,7 @@ namespace Packager
                 new XAttribute("name", file.AssemblyName ?? file.Name.Substring(0, file.Name.LastIndexOf("."))),
                 new XAttribute("version", file.Version),
                 new XAttribute("language", "neutral"),
-                new XAttribute("processorArchitecture", "msil"),
+                new XAttribute("processorArchitecture", file.Architecture.ToString("G").ToLowerInvariant()),
             };
 
             if (file.PublicKeyToken != null)
