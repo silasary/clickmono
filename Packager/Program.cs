@@ -103,48 +103,48 @@ namespace Packager
         {
             var documentElements = new List<object>
             {
-                new XAttribute(XNamespace.Xmlns + "asmv1", asmv1ns),
-                new XAttribute("xmlns", asmv2ns),
-                new XAttribute(XNamespace.Xmlns + "asmv3ns", asmv3ns),
-                new XAttribute(XNamespace.Xmlns + "dsig", dsigns),
+                new XAttribute(XNamespace.Xmlns + "Xmlns.asmv1", Xmlns.asmv1ns),
+                new XAttribute("xmlns", Xmlns.asmv2ns),
+                new XAttribute(XNamespace.Xmlns + "Xmlns.asmv3ns", Xmlns.asmv3ns),
+                new XAttribute(XNamespace.Xmlns + "dsig", Xmlns.dsigns),
                 new XAttribute("manifestVersion", "1.0"),
-                GetManifestAssemblyIdentity(asmv1assemblyIdentity, manifest, false),
-                new XElement(asmv2application),
-                new XElement(asmv2entryPoint,
-                    GetDependencyAssemblyIdentity(asmv2assemblyIdentity, manifest.entryPoint),
-                    new XElement(asmv2commandLine,
+                GetManifestAssemblyIdentity(Xmlns.asmv1assemblyIdentity, manifest, false),
+                new XElement(Xmlns.asmv2application),
+                new XElement(Xmlns.asmv2entryPoint,
+                    GetDependencyAssemblyIdentity(manifest.entryPoint),
+                    new XElement(Xmlns.asmv2commandLine,
                         new XAttribute("file", manifest.entryPoint.Name),
                         new XAttribute("parameters", ""))
                 ),
-                new XElement(asmv2trustInfo,
-                    new XElement(asmv2security,
-                        new XElement(asmv2applicationRequestMinimum,
-                            new XElement(asmv2PermissionSet,
+                new XElement(Xmlns.asmv2trustInfo,
+                    new XElement(Xmlns.asmv2security,
+                        new XElement(Xmlns.asmv2applicationRequestMinimum,
+                            new XElement(Xmlns.asmv2PermissionSet,
                                 new XAttribute("Unrestricted", "true"),
                                 new XAttribute("ID", "Custom"),
                                 new XAttribute("SameSite", "site")),
-                            new XElement(asmv2defaultAssemblyRequest,
+                            new XElement(Xmlns.asmv2defaultAssemblyRequest,
                                 new XAttribute("permissionSetReference", "Custom"))),
-                        new XElement(asmv3requestedPrivileges,
-                            new XElement(asmv3requestedExecutionLevel,
+                        new XElement(Xmlns.asmv3requestedPrivileges,
+                            new XElement(Xmlns.asmv3requestedExecutionLevel,
                                 new XAttribute("level", "asInvoker"),
                                 new XAttribute("uiAccess", "false"))))
                 ),
                 // For reasons I don't quite understand, all clickonce manifests are marked compatible with XP+ (even those on Framework 4.6+)
-                new XElement(asmv2dependency,
-                    new XElement(asmv2dependentOS,
-                        new XElement(asmv2osVersionInfo,
-                            new XElement(asmv2os,
+                new XElement(Xmlns.asmv2dependency,
+                    new XElement(Xmlns.asmv2dependentOS,
+                        new XElement(Xmlns.asmv2osVersionInfo,
+                            new XElement(Xmlns.asmv2os,
                                 new XAttribute("majorVersion", "5"),
                                 new XAttribute("minorVersion", "1"),
                                 new XAttribute("buildNumber", "2600"),
                                 new XAttribute("servicePackMajor", "0"))))
                 ),
-                new XElement(asmv2dependency,
-                    new XElement(asmv2dependentAssembly,
+                new XElement(Xmlns.asmv2dependency,
+                    new XElement(Xmlns.asmv2dependentAssembly,
                         new XAttribute("dependencyType", "preRequisite"),
                         new XAttribute("allowDelayedBinding", "true"),
-                        new XElement(asmv2assemblyIdentity,
+                        new XElement(Xmlns.asmv2assemblyIdentity,
                             new XAttribute("name", "Microsoft.Windows.CommonLanguageRuntime"),
                             new XAttribute("version", "4.0.30319.0")))
                 )
@@ -155,41 +155,41 @@ namespace Packager
                 if (item.Version != null)
                 {
                     documentElements.Add(
-                        new XElement(asmv2dependency,
-                            new XElement(asmv2dependentAssembly,
+                        new XElement(Xmlns.asmv2dependency,
+                            new XElement(Xmlns.asmv2dependentAssembly,
                                 new XAttribute("dependencyType", "install"),
                                 new XAttribute("allowDelayedBinding", "true"),
                                 new XAttribute("codebase", item.Name.Replace("/", "\\")),
                                 new XAttribute("size", item.Size.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                                GetDependencyAssemblyIdentity(asmv2assemblyIdentity, item),
-                                new XElement(asmv2hash,
-                                    new XElement(dsigTransforms,
-                                        new XElement(dsigTransform,
+                                GetDependencyAssemblyIdentity(item),
+                                new XElement(Xmlns.asmv2hash,
+                                    new XElement(Xmlns.dsigTransforms,
+                                        new XElement(Xmlns.dsigTransform,
                                             new XAttribute("Algorithm", CONST_HASH_TRANSFORM_IDENTITY))),
-                                    new XElement(dsigDigestMethod,
+                                    new XElement(Xmlns.dsigDigestMethod,
                                         new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#" + item.DigestMethod)),
-                                    new XElement(dsigDigestValue,
+                                    new XElement(Xmlns.dsigDigestValue,
                                         new XText(item.DigestValue))))));
                 }
                 else
                 {
                     documentElements.Add(
-                        new XElement(asmv2file,
+                        new XElement(Xmlns.asmv2file,
                             new XAttribute("name", item.Name.Replace("/", "\\")),
                             new XAttribute("size", item.Size.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                            new XElement(asmv2hash,
-                                new XElement(dsigTransforms,
-                                    new XElement(dsigTransform,
+                            new XElement(Xmlns.asmv2hash,
+                                new XElement(Xmlns.dsigTransforms,
+                                    new XElement(Xmlns.dsigTransform,
                                         new XAttribute("Algorithm", CONST_HASH_TRANSFORM_IDENTITY))),
-                                new XElement(dsigDigestMethod,
+                                new XElement(Xmlns.dsigDigestMethod,
                                     new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#" + item.DigestMethod)),
-                                new XElement(dsigDigestValue,
+                                new XElement(Xmlns.dsigDigestValue,
                                     new XText(item.DigestValue)))));
                 }
             }
             return new XDocument(
                 new XDeclaration("1.0", "utf-8", null),
-                new XElement(asmv1assembly, documentElements));
+                new XElement(Xmlns.asmv1assembly, documentElements));
         }
 
         private static XElement GetManifestAssemblyIdentity(XName asmvxassemblyIdentity, Manifest manifest, bool useEntryPoint)
@@ -214,7 +214,7 @@ namespace Packager
             );
         }
 
-        private static XElement GetDependencyAssemblyIdentity(XName asmv2assemblyIdentity, ManifestFile file)
+        private static XElement GetDependencyAssemblyIdentity(ManifestFile file)
         {
             var assemblyIdentityAttributes = new List<XAttribute>
             {
@@ -230,7 +230,7 @@ namespace Packager
                     new XAttribute("publicKeyToken", file.PublicKeyToken));
             }
 
-            return new XElement(asmv2assemblyIdentity, assemblyIdentityAttributes);
+            return new XElement(Xmlns.asmv2assemblyIdentity, assemblyIdentityAttributes);
         }
 
         public static XDocument GenerateApplicationManifest(Manifest manifest, byte[] manifestBytes)
@@ -245,13 +245,13 @@ namespace Packager
 
             var document = new XDocument(
                new XDeclaration("1.0", "utf-8", null),
-               new XElement(asmv1assembly,
-                   new XAttribute(XNamespace.Xmlns + "asmv1", asmv1ns),
-                   new XAttribute(XNamespace.Xmlns + "asmv2", asmv2ns),
-                   new XAttribute(XNamespace.Xmlns + "clickoncev2ns", clickoncev2ns),
-                   new XAttribute(XNamespace.Xmlns + "dsig", dsigns),
+               new XElement(Xmlns.asmv1assembly,
+                   new XAttribute(XNamespace.Xmlns + "Xmlns.asmv1", Xmlns.asmv1ns),
+                   new XAttribute(XNamespace.Xmlns + "Xmlns.asmv2", Xmlns.asmv2ns),
+                   new XAttribute(XNamespace.Xmlns + "Xmlns.clickoncev2ns", Xmlns.clickoncev2ns),
+                   new XAttribute(XNamespace.Xmlns + "dsig", Xmlns.dsigns),
                    new XAttribute("manifestVersion", "1.0"),
-                   new XElement(asmv1assemblyIdentity,
+                   new XElement(Xmlns.asmv1assemblyIdentity,
                        new XAttribute("name", Path.ChangeExtension(manifest.entryPoint.Name, ".application")),
                        new XAttribute("version", manifest.version),
                        new XAttribute("publicKeyToken", "0000000000000000"),
@@ -259,48 +259,48 @@ namespace Packager
                        new XAttribute("processorArchitecture", "msil")
                    ),
                    ManifestDescription(manifest),
-                   new XElement(asmv2deployment,
+                   new XElement(Xmlns.asmv2deployment,
                        new XAttribute("install", "true"),
                        new XAttribute("mapFileExtensions", "false"),
                        new XAttribute("trustURLParameters", "true"),
-                   new XElement(asmv2subscription,
-                       new XElement(asmv2update,
-                           new XElement(asmv2beforeApplicationStartup))),
-                       new XElement(asmv2deploymentProvider,
+                   new XElement(Xmlns.asmv2subscription,
+                       new XElement(Xmlns.asmv2update,
+                           new XElement(Xmlns.asmv2beforeApplicationStartup))),
+                       new XElement(Xmlns.asmv2deploymentProvider,
                            new XAttribute("codebase", manifest.DeploymentProviderUrl))
                    ),
-                   new XElement(clickoncev2compatibleFrameworks,
-                       new XElement(clickoncev2framework,
+                   new XElement(Xmlns.clickoncev2compatibleFrameworks,
+                       new XElement(Xmlns.clickoncev2framework,
                            new XAttribute("targetVersion", "4.5"),
                            new XAttribute("profile", "Full"),
                            new XAttribute("supportedRuntime", "4.0.30319"))
                    ),
-                   new XElement(asmv2dependency,
-                       new XElement(asmv2dependentAssembly,
+                   new XElement(Xmlns.asmv2dependency,
+                       new XElement(Xmlns.asmv2dependentAssembly,
                            new XAttribute("dependencyType", "install"),
                            new XAttribute("codebase", manifest.version + $"\\{manifest.entryPoint.Name}.manifest"),
                            new XAttribute("size", manifestSize),
-                           GetManifestAssemblyIdentity(asmv2assemblyIdentity, manifest, false),
-                           new XElement(asmv2hash,
-                               new XElement(dsigTransforms,
-                                   new XElement(dsigTransform,
+                           GetManifestAssemblyIdentity(Xmlns.asmv2assemblyIdentity, manifest, false),
+                           new XElement(Xmlns.asmv2hash,
+                               new XElement(Xmlns.dsigTransforms,
+                                   new XElement(Xmlns.dsigTransform,
                                        new XAttribute("Algorithm", "urn:schemas-microsoft-com:HashTransforms.Identity"))),
-                               new XElement(dsigDigestMethod,
+                               new XElement(Xmlns.dsigDigestMethod,
                                    new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#sha256")),
-                               new XElement(dsigDigestValue, manifestDigest)))
+                               new XElement(Xmlns.dsigDigestValue, manifestDigest)))
                    )
                ));
 
             if (string.IsNullOrWhiteSpace(manifest.DeploymentProviderUrl))
-                document.Descendants(asmv2deploymentProvider).Single().Remove();
+                document.Descendants(Xmlns.asmv2deploymentProvider).Single().Remove();
             return document;
         }
 
         private static XElement ManifestDescription(Manifest manifest)
         {
-            return new XElement(asmv1description,
-                                    new XAttribute(asmv2publisher, manifest.entryPoint.Publisher),
-                                    new XAttribute(asmv2product, manifest.entryPoint.Product)
+            return new XElement(Xmlns.asmv1description,
+                                    new XAttribute(Xmlns.asmv2publisher, manifest.entryPoint.Publisher),
+                                    new XAttribute(Xmlns.asmv2product, manifest.entryPoint.Product)
                                 );
         }
     }

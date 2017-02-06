@@ -50,8 +50,8 @@
     <Compile Include="Crypto.cs" />
     <Compile Include="Manifest.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Program.Namespaces.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Xmlns.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
