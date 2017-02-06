@@ -39,14 +39,14 @@ namespace Packager
             manifest.version = major + "." + minor + "." + patch + "." + build;
             target = target.CreateSubdirectory(manifest.version);
             EnumerateFiles(directory, manifest);
-            manifest.entryPoint = manifest.files.Single(n => n.name == Path.GetFileName(project));
+            manifest.entryPoint = manifest.files.Single(n => n.Name == Path.GetFileName(project));
             var xml = GenerateManifest(directory, manifest);
             string manifestPath = Path.Combine(target.FullName, Path.GetFileName(project) + ".manifest");
             File.WriteAllText(manifestPath, xml.ToString(SaveOptions.OmitDuplicateNamespaces));
 
             foreach (var file in manifest.files)
             {
-                File.Copy(Path.Combine(directory.FullName, file.name), Path.Combine(target.FullName, file.name), true);
+                File.Copy(Path.Combine(directory.FullName, file.Name), Path.Combine(target.FullName, file.Name), true);
             }
             xml = GenerateApplicationManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
@@ -58,8 +58,10 @@ namespace Packager
             var assembly = WindowsAssembly.FromFile(projectexe);
             foreach (var res in assembly.RootResourceDirectory.Entries)
             {
-                if (res.NameId != 24) // Version
+                if (res.NameId != 24) // Manifest
+                {
                     continue;
+                }
             }
         }
 
@@ -103,14 +105,13 @@ namespace Packager
 
                 manifest.files.Add(new ManifestFile
                 {
-                    path = /*"Application Files/" + manifest.version + "/" +*/ file.Name + ".deploy",
-                    name = file.Name,
-                    assemblyName = assemblyName,
-                    version = version,
-                    publicKeyToken = string.IsNullOrWhiteSpace(publicKeyToken) ? null : publicKeyToken,
-                    digestMethod = "sha256",
-                    digestValue = Crypto.GetSha256DigestValue(file),
-                    size = file.Length,
+                    Name = file.Name,
+                    AssemblyName = assemblyName,
+                    Version = version,
+                    PublicKeyToken = string.IsNullOrWhiteSpace(publicKeyToken) ? null : publicKeyToken,
+                    DigestMethod = "sha256",
+                    DigestValue = Crypto.GetSha256DigestValue(file),
+                    Size = file.Length,
                     Product = product,
                     Publisher = publisher,
                 });
@@ -126,14 +127,13 @@ namespace Packager
                     manifest.iconFile = file.Name;
                 manifest.files.Add(new ManifestFile
                 {
-                    path = "Application Files/" + manifest.version + "/" + file.Name,
-                    name = file.Name,
-                    assemblyName = null,
-                    version = null,
-                    publicKeyToken = null,
-                    digestMethod = "sha256",
-                    digestValue = Crypto.GetSha256DigestValue(file),
-                    size = file.Length
+                    Name = file.Name,
+                    AssemblyName = null,
+                    Version = null,
+                    PublicKeyToken = null,
+                    DigestMethod = "sha256",
+                    DigestValue = Crypto.GetSha256DigestValue(file),
+                    Size = file.Length
                 });
             }
         }
@@ -152,7 +152,7 @@ namespace Packager
                 new XElement(asmv2entryPoint,
                     GetDependencyAssemblyIdentity(asmv2assemblyIdentity, manifest.entryPoint),
                     new XElement(asmv2commandLine,
-                        new XAttribute("file", manifest.entryPoint.name),
+                        new XAttribute("file", manifest.entryPoint.Name),
                         new XAttribute("parameters", ""))
                 ),
                 new XElement(asmv2trustInfo,
@@ -191,39 +191,39 @@ namespace Packager
             
             foreach (var item in manifest.files)
             {
-                if (item.version != null)
+                if (item.Version != null)
                 {
                     documentElements.Add(
                         new XElement(asmv2dependency,
                             new XElement(asmv2dependentAssembly,
                                 new XAttribute("dependencyType", "install"),
                                 new XAttribute("allowDelayedBinding", "true"),
-                                new XAttribute("codebase", item.name.Replace("/", "\\")),
-                                new XAttribute("size", item.size.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                                new XAttribute("codebase", item.Name.Replace("/", "\\")),
+                                new XAttribute("size", item.Size.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                                 GetDependencyAssemblyIdentity(asmv2assemblyIdentity, item),
                                 new XElement(asmv2hash,
                                     new XElement(dsigTransforms,
                                         new XElement(dsigTransform,
                                             new XAttribute("Algorithm", CONST_HASH_TRANSFORM_IDENTITY))),
                                     new XElement(dsigDigestMethod,
-                                        new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#" + item.digestMethod)),
+                                        new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#" + item.DigestMethod)),
                                     new XElement(dsigDigestValue,
-                                        new XText(item.digestValue))))));
+                                        new XText(item.DigestValue))))));
                 }
                 else
                 {
                     documentElements.Add(
                         new XElement(asmv2file,
-                            new XAttribute("name", item.name.Replace("/", "\\")),
-                            new XAttribute("size", item.size.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                            new XAttribute("name", item.Name.Replace("/", "\\")),
+                            new XAttribute("size", item.Size.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                             new XElement(asmv2hash,
                                 new XElement(dsigTransforms,
                                     new XElement(dsigTransform,
                                         new XAttribute("Algorithm", CONST_HASH_TRANSFORM_IDENTITY))),
                                 new XElement(dsigDigestMethod,
-                                    new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#" + item.digestMethod)),
+                                    new XAttribute("Algorithm", "http://www.w3.org/2000/09/xmldsig#" + item.DigestMethod)),
                                 new XElement(dsigDigestValue,
-                                    new XText(item.digestValue)))));
+                                    new XText(item.DigestValue)))));
                 }
             }
             return new XDocument(
@@ -235,16 +235,16 @@ namespace Packager
         {
             if (useEntryPoint)
                 return new XElement(asmvxassemblyIdentity,
-                    new XAttribute("name", manifest.entryPoint.name),
-                    new XAttribute("version", manifest.entryPoint.version),
-                    new XAttribute("publicKeyToken", manifest.entryPoint.publicKeyToken ?? CONST_NULL_PUBKEY),
+                    new XAttribute("name", manifest.entryPoint.Name),
+                    new XAttribute("version", manifest.entryPoint.Version),
+                    new XAttribute("publicKeyToken", manifest.entryPoint.PublicKeyToken ?? CONST_NULL_PUBKEY),
                     new XAttribute("language", "neutral"),
                     new XAttribute("processorArchitecture", "msil") // TODO: Identify Architecture
                     //new XAttribute("type", "win32") // TODO: This too.
                 );
             else
                 return new XElement(asmvxassemblyIdentity,
-                new XAttribute("name", manifest.entryPoint.name),
+                new XAttribute("name", manifest.entryPoint.Name),
                 new XAttribute("version", manifest.version),
                 new XAttribute("publicKeyToken", CONST_NULL_PUBKEY),
                 new XAttribute("language", "neutral"),
@@ -257,16 +257,16 @@ namespace Packager
         {
             var assemblyIdentityAttributes = new List<XAttribute>
             {
-                new XAttribute("name", file.assemblyName ?? file.name.Substring(0, file.name.LastIndexOf("."))),
-                new XAttribute("version", file.version),
+                new XAttribute("name", file.AssemblyName ?? file.Name.Substring(0, file.Name.LastIndexOf("."))),
+                new XAttribute("version", file.Version),
                 new XAttribute("language", "neutral"),
                 new XAttribute("processorArchitecture", "msil"),
             };
 
-            if (file.publicKeyToken != null)
+            if (file.PublicKeyToken != null)
             {
                 assemblyIdentityAttributes.Add(
-                    new XAttribute("publicKeyToken", file.publicKeyToken));
+                    new XAttribute("publicKeyToken", file.PublicKeyToken));
             }
 
             return new XElement(asmv2assemblyIdentity, assemblyIdentityAttributes);
@@ -280,7 +280,7 @@ namespace Packager
             if (string.IsNullOrWhiteSpace(manifest.entryPoint.Publisher))
                 manifest.entryPoint.Publisher = Environment.UserName;
             if (string.IsNullOrWhiteSpace(manifest.entryPoint.Product))
-                manifest.entryPoint.Product = manifest.entryPoint.name;
+                manifest.entryPoint.Product = manifest.entryPoint.Name;
 
             var document = new XDocument(
                new XDeclaration("1.0", "utf-8", null),
@@ -291,7 +291,7 @@ namespace Packager
                    new XAttribute(XNamespace.Xmlns + "dsig", dsigns),
                    new XAttribute("manifestVersion", "1.0"),
                    new XElement(asmv1assemblyIdentity,
-                       new XAttribute("name", Path.ChangeExtension(manifest.entryPoint.name, ".application")),
+                       new XAttribute("name", Path.ChangeExtension(manifest.entryPoint.Name, ".application")),
                        new XAttribute("version", manifest.version),
                        new XAttribute("publicKeyToken", "0000000000000000"),
                        new XAttribute("language", "neutral"),
@@ -317,7 +317,7 @@ namespace Packager
                    new XElement(asmv2dependency,
                        new XElement(asmv2dependentAssembly,
                            new XAttribute("dependencyType", "install"),
-                           new XAttribute("codebase", manifest.version + $"\\{manifest.entryPoint.name}.manifest"),
+                           new XAttribute("codebase", manifest.version + $"\\{manifest.entryPoint.Name}.manifest"),
                            new XAttribute("size", manifestSize),
                            GetManifestAssemblyIdentity(asmv2assemblyIdentity, manifest, false),
                            new XElement(asmv2hash,

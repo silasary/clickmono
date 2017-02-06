@@ -19,25 +19,22 @@ namespace Packager
 
     public class ManifestFile
     {
+        public string Name { get; set; }
 
-        public string path { get; set; }
+        public string AssemblyName { get; set; }
 
-        public string name { get; set; }
+        public string Version { get; set; }
 
-        public string assemblyName { get; set; }
+        public string PublicKeyToken { get; set; }
 
-        public string version { get; set; }
+        public string DigestMethod { get; set; }
 
-        public string publicKeyToken { get; set; }
-
-        public string digestMethod { get; set; }
-
-        public string digestValue { get; set; }
+        public string DigestValue { get; set; }
 
         public string Product { get; set; }
 
         public string Publisher { get; set; }
 
-        public long size { get; set; }
+        public long Size { get; set; }
     }
 }
