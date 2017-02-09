@@ -47,7 +47,7 @@ namespace Packager
                 Console.WriteLine($"Failed. {e.Message}");
             }
             if (string.IsNullOrWhiteSpace(PublicKeyToken))
-                PublicKeyToken = "0000000000000000";
+                PublicKeyToken = null;
             DigestMethod = "sha256";
             DigestValue = Crypto.GetSha256DigestValue(file);
             Size = file.Length;
