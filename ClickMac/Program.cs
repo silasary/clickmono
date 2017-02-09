@@ -20,6 +20,7 @@ namespace ClickMac
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             Loading.Log = Console.WriteLine;
+            InvokationDirectory = Environment.CurrentDirectory;
             Environment.CurrentDirectory = Path.GetDirectoryName(Location);
             Console.WriteLine("Running on {0}", Platform.GetPlatform( ));
             var application = PreLoading.DoArgs(ref args);
@@ -57,7 +58,8 @@ namespace ClickMac
 
         private static void Launch(Manifest application, string[] args)
         {
-            //Console.WriteLine("Launching '{0}' from {1}", Loading.entry.executable, Environment.CurrentDirectory);
+
+            Console.WriteLine("Launching '{0}' in {1}", application.Entry.executable, Environment.CurrentDirectory);
             try
             {
                 process = Process.Start(new ProcessStartInfo(application.Entry.executable, String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
@@ -144,5 +146,7 @@ namespace ClickMac
                 return Assembly.GetExecutingAssembly().Location;
             }
         }
+
+        public static string InvokationDirectory { get; private set; }
     }
 }
