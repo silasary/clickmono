@@ -29,7 +29,8 @@ namespace Packager
             var directory = new DirectoryInfo(Path.GetDirectoryName(project));
             var target = directory.CreateSubdirectory("_publish");
 
-            StripManifest(project);
+            var resources = new Resources(project);
+            resources.StripManifest();
 
             var date = DateTime.UtcNow;
             var major = date.ToString("yyMM");
@@ -41,6 +42,16 @@ namespace Packager
             target = target.CreateSubdirectory(manifest.version);
             EnumerateFiles(directory, manifest);
             manifest.entryPoint = manifest.files.Single(n => n.Name == Path.GetFileName(project));
+            //if (manifest.iconFile == null)
+            //{
+            //    var icon = resources.ExtractIcon(project);
+            //    if (icon != null)
+            //    {
+            //        manifest.files.Add(icon);
+            //    }
+            //    manifest.iconFile = icon.Name;
+            //}
+
             var xml = GenerateManifest(directory, manifest);
             string manifestPath = Path.Combine(target.FullName, Path.GetFileName(project) + ".manifest");
             File.WriteAllText(manifestPath, xml.ToString(SaveOptions.OmitDuplicateNamespaces));
@@ -52,18 +63,6 @@ namespace Packager
             xml = GenerateApplicationManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
             File.Copy(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), Path.Combine(directory.FullName, "_publish", Path.GetFileName(project) + ".application"), true);
-        }
-
-        private static void StripManifest(string projectexe)
-        {
-            var assembly = WindowsAssembly.FromFile(projectexe);
-            foreach (var res in assembly.RootResourceDirectory.Entries)
-            {
-                if (res.NameId != 24) // Manifest
-                {
-                    continue;
-                }
-            }
         }
 
         private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)
