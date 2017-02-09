@@ -12,6 +12,6 @@ It works, but is not feature complete.
 
 System.Deployment namespace.  I'm not sure of the best way to implement this, and my last attempt caused unexpected issues.
 
-
-
 Pull Requests Welcome
+
+Packager icon was made by roundicons.com

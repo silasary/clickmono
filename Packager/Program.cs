@@ -24,7 +24,8 @@ namespace Packager
                 Console.WriteLine("No target specified.");
                 return;
             }
-            var project = args[0];
+            var project = new FileInfo(args[0]).FullName;
+
             var directory = new DirectoryInfo(Path.GetDirectoryName(project));
             var target = directory.CreateSubdirectory("_publish");
 
@@ -195,6 +196,7 @@ namespace Packager
         private static XElement GetManifestAssemblyIdentity(XName asmvxassemblyIdentity, Manifest manifest, bool useEntryPoint)
         {
             if (useEntryPoint)
+            {
                 return new XElement(asmvxassemblyIdentity,
                     new XAttribute("name", manifest.entryPoint.Name),
                     new XAttribute("version", manifest.entryPoint.Version),
@@ -203,7 +205,9 @@ namespace Packager
                     new XAttribute("processorArchitecture", "msil") // TODO: Identify Architecture
                     //new XAttribute("type", "win32") // TODO: This too.
                 );
+            }
             else
+            {
                 return new XElement(asmvxassemblyIdentity,
                 new XAttribute("name", manifest.entryPoint.Name),
                 new XAttribute("version", manifest.version),
@@ -212,6 +216,7 @@ namespace Packager
                 new XAttribute("processorArchitecture", "msil"),
                 new XAttribute("type", "win32")
             );
+            }
         }
 
         private static XElement GetDependencyAssemblyIdentity(ManifestFile file)
