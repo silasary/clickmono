@@ -55,11 +55,11 @@ namespace ClickMac
 
         private static void Launch(Manifest application, string[] args)
         {
-
-            Console.WriteLine("Launching '{0}' in {1}", application.Entry.executable, Environment.CurrentDirectory);
+            string executable = Path.Combine(application.Entry.folder, application.Entry.executable);
+            Console.WriteLine("Launching '{0}' in {1}", executable, Environment.CurrentDirectory);
             try
             {
-                process = Process.Start(new ProcessStartInfo(application.Entry.executable, String.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
+                process = Process.Start(new ProcessStartInfo(executable, string.Join(" ", args)) { RedirectStandardOutput = true, UseShellExecute = false });
                 process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
                 process.BeginOutputReadLine();
             }
@@ -67,7 +67,7 @@ namespace ClickMac
             {
                 try
                 {
-                    process = Process.Start(new ProcessStartInfo("mono", String.Format("{0} {1}", application.Entry.executable, String.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
+                    process = Process.Start(new ProcessStartInfo("mono", string.Format("{0} {1}", executable, string.Join(" ", args))) { RedirectStandardOutput = true, UseShellExecute = false });
                     process.OutputDataReceived += new DataReceivedEventHandler((o, e) => { Console.WriteLine(e.Data); });
                     process.BeginOutputReadLine();
                 }
@@ -75,11 +75,11 @@ namespace ClickMac
                 {
                     try
                     {
-                        process = Process.Start(new ProcessStartInfo("mono", application.Entry.executable) { UseShellExecute = true });
+                        process = Process.Start(new ProcessStartInfo("mono", executable) { UseShellExecute = true });
                     }
                     catch (Win32Exception)
                     {
-                        process = Process.Start(new ProcessStartInfo(application.Entry.executable) { UseShellExecute = true });
+                        process = Process.Start(new ProcessStartInfo(executable) { UseShellExecute = true });
                     }
                 }
             }

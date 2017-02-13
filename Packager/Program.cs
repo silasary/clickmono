@@ -13,9 +13,9 @@ namespace Packager
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Packager.exe invoked with args:");
-            Console.WriteLine(string.Join("|", args));
-            Console.WriteLine($"Working Directory={Environment.CurrentDirectory}");
+            Console.WriteLine("Packager.exe invoked with:");
+            Console.WriteLine($"\tArgs={string.Join("|", args)}");
+            Console.WriteLine($"\tWorking Directory={Environment.CurrentDirectory}");
             if (args.Length == 0)
             {
                 Console.WriteLine("No target specified.");
