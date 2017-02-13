@@ -39,9 +39,6 @@ namespace ClickMac
                 Environment.SetEnvironmentVariable("ClickOnceAppVersion", application.Entry.version);
                 Environment.SetEnvironmentVariable("ClickOncePid", Process.GetCurrentProcess().Id.ToString());
 
-
-                if (Environment.CurrentDirectory == Path.GetDirectoryName(Location))
-                    Environment.CurrentDirectory = application.Entry.folder;
                 Launch(application, args);
                 Console.CancelKeyPress += Console_CancelKeyPress;
                 process.WaitForExit();

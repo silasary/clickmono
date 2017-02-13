@@ -47,8 +47,11 @@ namespace ClickMac
                 using (var curl = new CurlWrapper())
                 {
                     FileInfo tempFile = curl.GetFile(Location);
-                    FileStream fileStream = tempFile.OpenRead();
-                    Xml = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace);
+                    if (tempFile != null)
+                    {
+                        FileStream fileStream = tempFile.OpenRead();
+                        Xml = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace);
+                    }
                 }
             }
             DiskLocation = Xml.Root.Element(Namespace.XName("assemblyIdentity", ns.asmv1)).Attribute("name").Value;

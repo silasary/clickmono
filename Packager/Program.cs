@@ -37,8 +37,11 @@ namespace Packager
             var minor = date.ToString("ddHH");
             var patch = date.ToString("mmss");
             var build = Environment.GetEnvironmentVariable("BUILD_NUMBER") ?? "0";
-            var manifest = new Manifest();
-            manifest.version = major + "." + minor + "." + patch + "." + build;
+            var manifest = new Manifest()
+            {
+                version = major + "." + minor + "." + patch + "." + build
+            };
+
             target = target.CreateSubdirectory(manifest.version);
             EnumerateFiles(directory, manifest);
             manifest.entryPoint = manifest.files.Single(n => n.Name == Path.GetFileName(project));
