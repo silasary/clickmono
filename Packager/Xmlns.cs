@@ -74,6 +74,6 @@ namespace Packager
         public static XName asmv3requestedPrivileges = asmv3ns.GetName("requestedPrivileges");
         public static XName asmv3requestedExecutionLevel = asmv3ns.GetName("requestedExecutionLevel");
         public static XName clickoncev1useManifestForTrust = clickoncev1ns.GetName("useManifestForTrust");
-
+        public static XName clickoncev1createDesktopShortcut = clickoncev1ns.GetName("createDesktopShortcut");
     }
 }
