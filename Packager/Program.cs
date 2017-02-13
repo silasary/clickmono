@@ -1,13 +1,7 @@
-﻿using AsmResolver;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Packager
@@ -19,10 +13,17 @@ namespace Packager
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Packager.exe invoked with args:");
+            Console.WriteLine(string.Join("|", args));
+            Console.WriteLine($"Working Directory={Environment.CurrentDirectory}");
             if (args.Length == 0)
             {
                 Console.WriteLine("No target specified.");
                 return;
+            }
+            else if (File.Exists(args[0]))
+            {
+                Console.WriteLine($"Packaging {args[0]}");
             }
             var project = new FileInfo(args[0]).FullName;
 
