@@ -107,9 +107,9 @@ namespace Packager
         {
             var documentElements = new List<object>
             {
-                new XAttribute(XNamespace.Xmlns + "Xmlns.asmv1", Xmlns.asmv1ns),
+                new XAttribute(XNamespace.Xmlns + "asmv1", Xmlns.asmv1ns),
                 new XAttribute("xmlns", Xmlns.asmv2ns),
-                new XAttribute(XNamespace.Xmlns + "Xmlns.asmv3ns", Xmlns.asmv3ns),
+                new XAttribute(XNamespace.Xmlns + "asmv3ns", Xmlns.asmv3ns),
                 new XAttribute(XNamespace.Xmlns + "dsig", Xmlns.dsigns),
                 new XAttribute("manifestVersion", "1.0"),
                 GetManifestAssemblyIdentity(Xmlns.asmv1assemblyIdentity, manifest, false),
@@ -254,8 +254,8 @@ namespace Packager
             var document = new XDocument(
                new XDeclaration("1.0", "utf-8", null),
                new XElement(Xmlns.asmv1assembly,
-                   new XAttribute(XNamespace.Xmlns + "Xmlns.asmv1", Xmlns.asmv1ns),
-                   new XAttribute(XNamespace.Xmlns + "Xmlns.asmv2", Xmlns.asmv2ns),
+                   new XAttribute(XNamespace.Xmlns + "asmv1", Xmlns.asmv1ns),
+                   new XAttribute(XNamespace.Xmlns + "asmv2", Xmlns.asmv2ns),
                    new XAttribute(XNamespace.Xmlns + "co.v2", Xmlns.clickoncev2ns),
                    new XAttribute(XNamespace.Xmlns + "co.v1", Xmlns.clickoncev1ns),
                    new XAttribute(XNamespace.Xmlns + "dsig", Xmlns.dsigns),
