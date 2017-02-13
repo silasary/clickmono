@@ -25,7 +25,11 @@ namespace ClickMac
             Console.WriteLine("Running on {0}", Platform.GetPlatform( ));
             var application = PreLoading.DoArgs(ref args);
             if (application == null)
+            {
+                CheckForSelfUpdate(null);
                 return;
+            }
+
             if (File.Exists(infoPlist))
             {
                 dynamic plist = PlistCS.Plist.readPlist(infoPlist);
@@ -124,6 +128,10 @@ namespace ClickMac
             { }
             catch (IOException) 
             { } // Chances are, we just updated, and clickmac.old.exe is still running.
+            catch (Exception c)
+            {
+                Console.WriteLine("Failed Updating: {0}", c);
+            }
             return false;
 
         }
