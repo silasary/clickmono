@@ -179,6 +179,35 @@ namespace ClickMac
             {
                 ProcessDependency(dependency, path);
             }
+            foreach (var file in Xml.Root.Elements(Namespace.XName("file", ns.asmv2)))
+            {
+                GetFile(file, path);
+            }
+            foreach (var fa in Xml.Root.Elements(Namespace.XName("fileAssociation", ns.cov1)))
+            {
+                Platform.AssociateFile(fa, this);
+            }
+            var entryPoint = Xml.Root.Element(Namespace.XName("entryPoint", ns.asmv2));
+            if (entryPoint != null)
+            {
+                entry.executable = entryPoint.Element(Namespace.XName("commandLine", ns.asmv2)).Attribute("file").Value;
+                entry.folder = new DirectoryInfo(Subfolder).FullName; // Alsolute reference.
+                XElement identity = entryPoint.Element(Namespace.XName("assemblyIdentity", ns.asmv2));
+                entry.version = identity.Attribute("version").Value;
+                entry.displayName = identity.Attribute("name").Value;
+            }
+            var description = Xml.Root.Element(Namespace.XName("description", ns.asmv1));
+            if (description != null)
+            {
+                var iconFile = description.Attribute(Namespace.XName("iconFile", ns.asmv2));
+                if (iconFile != null && !string.IsNullOrWhiteSpace(iconFile.Value))
+                {
+                    if (File.Exists(Path.Combine(Subfolder, iconFile.Value)))
+                    {
+                        entry.icon = Path.Combine(Subfolder, iconFile.Value);
+                    }
+                }
+            }
         }
 
         private void ProcessDependency(XElement dependency, string path)
@@ -229,34 +258,6 @@ namespace ClickMac
                 manifest.ProcessDependencies();
                 Children.Add(manifest);
                 entry.Import(manifest.entry);
-            }
-            foreach (var file in Xml.Root.Elements(Namespace.XName("file", ns.asmv2)))
-            {
-                GetFile(file, GetUrlFolder(path + "/" + codebase.Replace('\\', '/')));
-            }
-            foreach (var fa in Xml.Root.Elements(Namespace.XName("fileAssociation", ns.cov1)))
-            {
-                Platform.AssociateFile(fa, this);
-            }
-            var entryPoint = Xml.Root.Element(Namespace.XName("entryPoint", ns.asmv2));
-            if (entryPoint != null)
-            {
-                entry.executable = entryPoint.Element(Namespace.XName("commandLine", ns.asmv2)).Attribute("file").Value;
-                entry.folder = new DirectoryInfo(Subfolder ?? version).FullName; // Alsolute reference.
-                entry.version = assemblyIdentity.Attribute("version").Value;
-                entry.displayName = entryPoint.Element(Namespace.XName("assemblyIdentity", ns.asmv2)).Attribute("name").Value;
-            }
-            var description = Xml.Root.Element(Namespace.XName("description", ns.asmv1));
-            if (description != null)
-            {
-                var iconFile = description.Attribute(Namespace.XName("iconFile", ns.asmv2));
-                if (iconFile != null && !string.IsNullOrWhiteSpace(iconFile.Value))
-                {
-                    if (File.Exists(Path.Combine(Subfolder ?? version, iconFile.Value)))
-                    {
-                        entry.icon = Path.Combine(Subfolder ?? version, iconFile.Value);
-                    }
-                }
             }
             if (!String.IsNullOrWhiteSpace(Subfolder))
             {
