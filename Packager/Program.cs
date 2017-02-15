@@ -114,7 +114,7 @@ namespace Packager
                 new XAttribute("manifestVersion", "1.0"),
                 GetManifestAssemblyIdentity(Xmlns.asmv1assemblyIdentity, manifest, false),
                 new XElement(Xmlns.asmv1description,
-                    new XAttribute(Xmlns.asmv2iconFile, manifest.iconFile)
+                    new XAttribute(Xmlns.asmv2iconFile, manifest.iconFile ?? manifest.entryPoint.Name)
                 ),
                 new XElement(Xmlns.asmv2application),
                 new XElement(Xmlns.asmv2entryPoint,
@@ -194,8 +194,8 @@ namespace Packager
                                     new XText(item.DigestValue)))));
                 }
             }
-            if (manifest.iconFile == null)
-                documentElements.OfType<XElement>().Single(e => e.Name == Xmlns.asmv1description).Remove();
+            //if (manifest.iconFile == null)
+            //    documentElements.OfType<XElement>().Single(e => e.Name == Xmlns.asmv1description).Remove();
             return new XDocument(
                 new XDeclaration("1.0", "utf-8", null),
                 new XElement(Xmlns.asmv1assembly, documentElements));
