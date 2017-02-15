@@ -105,7 +105,7 @@ namespace Packager
 
         private static XDocument GenerateManifest(DirectoryInfo directory, Manifest manifest)
         {
-            var documentElements = new List<object>
+            var documentElements = new List<XObject>
             {
                 new XAttribute(XNamespace.Xmlns + "asmv1", Xmlns.asmv1ns),
                 new XAttribute("xmlns", Xmlns.asmv2ns),
@@ -113,6 +113,7 @@ namespace Packager
                 new XAttribute(XNamespace.Xmlns + "dsig", Xmlns.dsigns),
                 new XAttribute("manifestVersion", "1.0"),
                 GetManifestAssemblyIdentity(Xmlns.asmv1assemblyIdentity, manifest, false),
+                ManifestDescription(manifest),
                 new XElement(Xmlns.asmv2application),
                 new XElement(Xmlns.asmv2entryPoint,
                     GetDependencyAssemblyIdentity(manifest.entryPoint),
@@ -190,6 +191,12 @@ namespace Packager
                                 new XElement(Xmlns.dsigDigestValue,
                                     new XText(item.DigestValue)))));
                 }
+            }
+
+            if (!string.IsNullOrEmpty(manifest.iconFile))
+            {
+                documentElements.OfType<XElement>().Single(x => x.Name == Xmlns.asmv1description).Add(
+                    new XAttribute(Xmlns.asmv2iconFile, manifest.iconFile));
             }
             return new XDocument(
                 new XDeclaration("1.0", "utf-8", null),

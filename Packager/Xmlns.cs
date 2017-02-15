@@ -25,9 +25,10 @@ namespace Packager
         public static XName asmv1language = asmv1ns.GetName("language");
         public static XName asmv1processorArchitecture = asmv1ns.GetName("processorArchitecture");
         public static XName asmv1description = asmv1ns.GetName("description");
+
         public static XName asmv2publisher = asmv2ns.GetName("publisher");
-        public static XName asmv2product = asmv2ns.GetName("product");
         public static XName asmv2deployment = asmv2ns.GetName("deployment");
+        public static XName asmv2product = asmv2ns.GetName("product");
         public static XName asmv2install = asmv2ns.GetName("install");
         public static XName asmv2mapFileExtensions = asmv2ns.GetName("mapFileExtensions");
         public static XName asmv2subscription = asmv2ns.GetName("subscription");
@@ -47,11 +48,14 @@ namespace Packager
         public static XName asmv2processorArchitecture = asmv2ns.GetName("processorArchitecture");
         public static XName asmv2type = asmv2ns.GetName("type");
         public static XName asmv2hash = asmv2ns.GetName("hash");
+        public static XName asmv2iconFile = asmv2ns.GetName("iconFile");
+
         public static XName clickoncev2compatibleFrameworks = clickoncev2ns.GetName("compatibleFrameworks");
         public static XName clickoncev2framework = clickoncev2ns.GetName("framework");
         public static XName clickoncev2targetVersion = clickoncev2ns.GetName("targetVersion");
         public static XName clickoncev2profile = clickoncev2ns.GetName("profile");
         public static XName clickoncev2supportedRuntime = clickoncev2ns.GetName("supportedRuntime");
+
         public static XName dsigTransforms = dsigns.GetName("Transforms");
         public static XName dsigTransform = dsigns.GetName("Transform");
         public static XName dsigAlgorithm = XName.Get("Algorithm");// dsigns.GetName("Algorithm");
@@ -73,6 +77,7 @@ namespace Packager
         public static XName asmv2os = asmv2ns.GetName("os");
         public static XName asmv3requestedPrivileges = asmv3ns.GetName("requestedPrivileges");
         public static XName asmv3requestedExecutionLevel = asmv3ns.GetName("requestedExecutionLevel");
+
         public static XName clickoncev1useManifestForTrust = clickoncev1ns.GetName("useManifestForTrust");
         public static XName clickoncev1createDesktopShortcut = clickoncev1ns.GetName("createDesktopShortcut");
     }
