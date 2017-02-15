@@ -64,7 +64,7 @@ namespace Packager
             {
                 File.Copy(Path.Combine(directory.FullName, file.Name), Path.Combine(target.FullName, file.Name), true);
             }
-            xml = GenerateApplicationManifest(manifest, File.ReadAllBytes(manifestPath));
+            xml = GenerateDeploymentManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
             File.Copy(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), Path.Combine(directory.FullName, "_publish", Path.GetFileName(project) + ".application"), true);
         }
@@ -114,6 +114,7 @@ namespace Packager
                 new XAttribute("manifestVersion", "1.0"),
                 GetManifestAssemblyIdentity(Xmlns.asmv1assemblyIdentity, manifest, false),
                 ManifestDescription(manifest),
+                new XElement(Xmlns.clickoncev1useManifestForTrust),
                 new XElement(Xmlns.asmv2application),
                 new XElement(Xmlns.asmv2entryPoint,
                     GetDependencyAssemblyIdentity(manifest.entryPoint),
@@ -248,7 +249,13 @@ namespace Packager
             return new XElement(Xmlns.asmv2assemblyIdentity, assemblyIdentityAttributes);
         }
 
-        public static XDocument GenerateApplicationManifest(Manifest manifest, byte[] manifestBytes)
+        /// <summary>
+        /// Generates the Deployment Manifest (.application file)
+        /// </summary>
+        /// <param name="manifest"></param>
+        /// <param name="manifestBytes"></param>
+        /// <returns></returns>
+        public static XDocument GenerateDeploymentManifest(Manifest manifest, byte[] manifestBytes)
         {
             var manifestSize = manifestBytes.Length;
             var manifestDigest = Crypto.GetSha256DigestValue(manifestBytes);
