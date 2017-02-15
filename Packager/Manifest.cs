@@ -11,12 +11,12 @@ namespace Packager
 {
     public class Manifest
     {
-        internal string iconFile;
+        internal string iconFile = null;
         internal ManifestFile entryPoint;
 
-        public string version { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
 
-        public List<ManifestFile> files { get; set; }
+        public List<ManifestFile> Files { get; set; }
         public string DeploymentProviderUrl { get; internal set; } = string.Empty;
     }
 

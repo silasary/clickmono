@@ -40,12 +40,12 @@ namespace Packager
             var build = Environment.GetEnvironmentVariable("BUILD_NUMBER") ?? "0";
             var manifest = new Manifest()
             {
-                version = major + "." + minor + "." + patch + "." + build
+                Version = major + "." + minor + "." + patch + "." + build
             };
 
-            target = target.CreateSubdirectory(manifest.version);
+            target = target.CreateSubdirectory(manifest.Version);
             EnumerateFiles(directory, manifest);
-            manifest.entryPoint = manifest.files.Single(n => n.Name == Path.GetFileName(project));
+            manifest.entryPoint = manifest.Files.Single(n => n.Name == Path.GetFileName(project));
             //if (manifest.iconFile == null)
             //{
             //    var icon = resources.ExtractIcon(project);
@@ -60,7 +60,7 @@ namespace Packager
             string manifestPath = Path.Combine(target.FullName, Path.GetFileName(project) + ".manifest");
             File.WriteAllText(manifestPath, xml.ToString(SaveOptions.OmitDuplicateNamespaces));
 
-            foreach (var file in manifest.files)
+            foreach (var file in manifest.Files)
             {
                 File.Copy(Path.Combine(directory.FullName, file.Name), Path.Combine(target.FullName, file.Name), true);
             }
@@ -71,7 +71,7 @@ namespace Packager
 
         private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)
         {
-            manifest.files = new List<ManifestFile>();
+            manifest.Files = new List<ManifestFile>();
 
             Stack<FileInfo> content = new Stack<FileInfo>();
 
@@ -87,7 +87,7 @@ namespace Packager
                 }
                 Console.WriteLine("Processing " + file.Name + "...");
 
-                manifest.files.Add(new ManifestFile(file));
+                manifest.Files.Add(new ManifestFile(file));
 
 
             }
@@ -97,9 +97,9 @@ namespace Packager
                 if (file.Name.Contains(".vshost"))
                     continue;
                 Console.WriteLine($"Adding file {file.Name}");
-                if (file.Extension == ".ico" && string.IsNullOrEmpty(manifest.iconFile))
+                if (file.Extension.ToLowerInvariant().Trim('.') == "ico" && string.IsNullOrEmpty(manifest.iconFile))
                     manifest.iconFile = file.Name;
-                manifest.files.Add(new ManifestFile(file));
+                manifest.Files.Add(new ManifestFile(file));
             }
         }
 
@@ -154,7 +154,7 @@ namespace Packager
                 )
             };
             
-            foreach (var item in manifest.files)
+            foreach (var item in manifest.Files)
             {
                 if (item.Version != null)
                 {
@@ -213,7 +213,7 @@ namespace Packager
             {
                 return new XElement(asmvxassemblyIdentity,
                 new XAttribute("name", manifest.entryPoint.Name),
-                new XAttribute("version", manifest.version),
+                new XAttribute("version", manifest.Version),
                 new XAttribute("publicKeyToken", CONST_NULL_PUBKEY),
                 new XAttribute("language", "neutral"),
                 new XAttribute("processorArchitecture", "msil"),
@@ -262,7 +262,7 @@ namespace Packager
                    new XAttribute("manifestVersion", "1.0"),
                    new XElement(Xmlns.asmv1assemblyIdentity,
                        new XAttribute("name", Path.ChangeExtension(manifest.entryPoint.Name, ".application")),
-                       new XAttribute("version", manifest.version),
+                       new XAttribute("version", manifest.Version),
                        new XAttribute("publicKeyToken", "0000000000000000"),
                        new XAttribute("language", "neutral"),
                        new XAttribute("processorArchitecture", "msil")
@@ -288,7 +288,7 @@ namespace Packager
                    new XElement(Xmlns.asmv2dependency,
                        new XElement(Xmlns.asmv2dependentAssembly,
                            new XAttribute("dependencyType", "install"),
-                           new XAttribute("codebase", manifest.version + $"\\{manifest.entryPoint.Name}.manifest"),
+                           new XAttribute("codebase", manifest.Version + $"\\{manifest.entryPoint.Name}.manifest"),
                            new XAttribute("size", manifestSize),
                            GetManifestAssemblyIdentity(Xmlns.asmv2assemblyIdentity, manifest, false),
                            new XElement(Xmlns.asmv2hash,
