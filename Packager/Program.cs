@@ -113,8 +113,9 @@ namespace Packager
                 new XAttribute(XNamespace.Xmlns + "dsig", Xmlns.dsigns),
                 new XAttribute("manifestVersion", "1.0"),
                 GetManifestAssemblyIdentity(Xmlns.asmv1assemblyIdentity, manifest, false),
-                //ManifestDescription(manifest),
-                //new XElement(Xmlns.clickoncev1useManifestForTrust),
+                new XElement(Xmlns.asmv1description,
+                    new XAttribute(Xmlns.asmv2iconFile, manifest.iconFile)
+                ),
                 new XElement(Xmlns.asmv2application),
                 new XElement(Xmlns.asmv2entryPoint,
                     GetDependencyAssemblyIdentity(manifest.entryPoint),
@@ -193,7 +194,8 @@ namespace Packager
                                     new XText(item.DigestValue)))));
                 }
             }
-
+            if (manifest.iconFile == null)
+                documentElements.OfType<XElement>().Single(e => e.Name == Xmlns.asmv1description).Remove();
             return new XDocument(
                 new XDeclaration("1.0", "utf-8", null),
                 new XElement(Xmlns.asmv1assembly, documentElements));
@@ -321,11 +323,11 @@ namespace Packager
                                     new XAttribute(Xmlns.asmv2publisher, manifest.entryPoint.Publisher),
                                     new XAttribute(Xmlns.asmv2product, manifest.entryPoint.Product)
                                 );
-            if (!string.IsNullOrEmpty(manifest.iconFile))
-            {
-                description.Add(
-                    new XAttribute(Xmlns.asmv2iconFile, manifest.iconFile));
-            }
+            //if (!string.IsNullOrEmpty(manifest.iconFile))
+            //{
+            //    description.Add(
+            //        new XAttribute(Xmlns.asmv2iconFile, manifest.iconFile));
+            //}
 
             return description;
         }
