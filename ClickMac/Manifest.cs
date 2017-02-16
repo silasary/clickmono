@@ -231,21 +231,8 @@ namespace ClickMac
             }
             catch (IOException) { }
             string filename = Path.Combine(".", version, Path.GetFileName(codebase));
-            bool downloaded = false;
-            if (File.Exists(filename))
-            {
-                if (new FileInfo(filename).Length == int.Parse(dependentAssembly.Attribute("size").Value)) // HACK: Not an actual equality test. (Although it's usually good enough)
-                {
-                    downloaded = true;
-                }
-                else
-                {
-                    if (File.Exists(filename + "._"))
-                        File.Delete(filename + "._");
-                    File.Move(filename, filename + "._");
-                }
-            }
-            if (!downloaded)
+            bool mustDownload = !VerifyExistingFile(dependentAssembly, filename);
+            if (mustDownload)
             {
                 Loading.Log("Getting Dependency {0}", codebase);
                 DownloadFile(path, codebase, filename);
@@ -266,6 +253,38 @@ namespace ClickMac
             }
         }
 
+        private static bool VerifyExistingFile(XElement dependentAssembly, string filename)
+        {
+            bool mustDownload = false;
+            if (!File.Exists(filename))
+            {
+                mustDownload = true;
+            }
+            else
+            {
+                int size = int.Parse(dependentAssembly.Attribute("size").Value);
+                string digestValue = dependentAssembly.Element(Namespace.XName("hash", ns.asmv2)).Element(Namespace.XName("DigestValue", ns.dsig)).Value;
+                string digestMethod = dependentAssembly.Element(Namespace.XName("hash", ns.asmv2)).Element(Namespace.XName("DigestMethod", ns.dsig)).Attribute("Algorithm").Value.Split('#')[1];
+                if (new FileInfo(filename).Length != size) // HACK: Not an actual equality test. (Although it's usually good enough)
+                {
+                    mustDownload = true;
+                }
+                if (!Crypto.AreEqual(filename, digestMethod, digestValue))
+                {
+                    mustDownload = true;
+                }
+
+                if (mustDownload)
+                {
+                    if (File.Exists(filename + "._"))
+                        File.Delete(filename + "._");
+                    File.Move(filename, filename + "._");
+                }
+            }
+
+            return mustDownload;
+        }
+
         private void GetFile(XElement file, string path)
         {
 
@@ -274,16 +293,7 @@ namespace ClickMac
             if (!Directory.Exists(Path.GetDirectoryName(filename)))
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
             Console.WriteLine("Getting {0}", filename);
-            bool downloaded = false;
-            if (File.Exists(filename))
-            {
-                if (new FileInfo(filename).Length == int.Parse(file.Attribute("size").Value))
-                {
-                    downloaded = true;
-                }
-                else
-                    File.Move(filename, filename + "._");
-            }
+            bool downloaded = VerifyExistingFile(file, filename);
             if (!downloaded)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
