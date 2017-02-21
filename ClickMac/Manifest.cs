@@ -350,7 +350,7 @@ namespace ClickMac
             {
                 Loading.Log($"> {url}");
                 WebClient webClient = new WebClient();
-                webClient.BaseAddress = path;
+                webClient.BaseAddress = path + "/";
                 webClient.DownloadFile(url, filename);
                 return filename;
             }
