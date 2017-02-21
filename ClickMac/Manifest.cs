@@ -32,9 +32,11 @@ namespace ClickMac
         public EntryPoint Entry { get { return entry; } }
 
         public List<Manifest> Children { get; private set; } = new List<Manifest>();
+        public readonly DeploymentOptions Options;
 
-        public Manifest(string Uri, string subfolder = "")
+        public Manifest(string Uri, DeploymentOptions options, string subfolder = "")
         {
+            Options = options;
             Subfolder = subfolder;
             Location = Uri;
             Loading.Log($"Loading Manifest from {Uri}");
@@ -57,9 +59,17 @@ namespace ClickMac
             DiskLocation = Xml.Root.Element(Namespace.XName("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
 
             var deployment = Xml.Root.Element(Namespace.XName("deployment", ns.asmv2));
-            if (deployment != null && deployment.Element(Namespace.XName("deploymentProvider", ns.asmv2)) != null)
+            if (deployment != null)
             {
-                UpdateManifest(deployment);
+                XAttribute mapFileExtensions = deployment.Attribute("mapFileExtensions");
+                if (bool.Parse(mapFileExtensions?.Value ?? "false"))
+                {
+                    options.MapFileExtensions = true;
+                }
+                if (deployment.Element(Namespace.XName("deploymentProvider", ns.asmv2)) != null)
+                {
+                    UpdateManifest(deployment);
+                }
             }
         }
 
@@ -241,7 +251,7 @@ namespace ClickMac
                 File.Delete(filename + "._");
             if (Path.GetExtension(codebase) == ".manifest")
             {
-                var manifest = new Manifest(path + "/" + codebase.Replace('\\', '/'), version);
+                var manifest = new Manifest(path + "/" + codebase.Replace('\\', '/'), Options, version);
                 manifest.ProcessDependencies();
                 Children.Add(manifest);
                 entry.Import(manifest.entry);
@@ -334,37 +344,31 @@ namespace ClickMac
 
         string DownloadFile(string path, string codebase, string filename)
         {
-            var urls = new string[] {
-                path + "/" + codebase.Replace('\\', '/'),                                       // Expected value
-                path + "/" + codebase.Replace('\\', '/') + ".deploy",                           // Escaped value
-                path + "/" + Path.GetFileName(codebase.Replace('\\', '/')),                     // Shallow path
-                path + "/" + Path.GetFileName(codebase.Replace('\\', '/')) + ".deploy",         // Escaped Shallow path
+            var url = codebase.Replace('\\', '/') + (Options.MapFileExtensions ? ".deploy" : "");
 
-            };
-
-            foreach (var url in urls)
+            try
             {
-                try
+                Loading.Log($"> {url}");
+                WebClient webClient = new WebClient();
+                webClient.BaseAddress = path;
+                webClient.DownloadFile(url, filename);
+                return filename;
+            }
+            catch (WebException c) when (Platform.IsRunningOnMono && c.Status == WebExceptionStatus.SecureChannelFailure)
+            {
+                using (var curl = new CurlWrapper())
                 {
-                    Loading.Log($"> {url}");
-                    new WebClient().DownloadFile(url, filename);
-                }
-                catch (WebException c) when (Platform.IsRunningOnMono && c.Status == WebExceptionStatus.SecureChannelFailure)
-                {
-                    using (var curl = new CurlWrapper())
+                    FileInfo tempFile = curl.GetFile(url);
+                    if (tempFile != null)
                     {
-                        FileInfo tempFile = curl.GetFile(url);
-                        if (tempFile == null)
-                            continue;
                         tempFile.MoveTo(filename);
                         Console.WriteLine(tempFile.FullName);
+                        return filename;
                     }
                 }
-                catch (WebException)
-                {
-                    continue;
-                }
-                return filename;
+            }
+            catch (WebException)
+            {
             }
             if (File.Exists(filename + "._"))
             {

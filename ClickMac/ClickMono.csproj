@@ -88,6 +88,7 @@
   <ItemGroup>
     <Compile Include="Crypto.cs" />
     <Compile Include="CurlWrapper.cs" />
+    <Compile Include="DeploymentOptions.cs" />
     <Compile Include="Namespace.cs" />
     <Compile Include="PreLoading.cs" />
     <Compile Include="Loading.cs" />

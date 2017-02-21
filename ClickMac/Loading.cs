@@ -29,7 +29,9 @@ namespace ClickMac
             if (!Loading.PortableMode)
                 Environment.CurrentDirectory = Platform.GetLibraryLocation( );
 
-            var application = new Manifest(manifestUri);
+            DeploymentOptions options = new DeploymentOptions();
+
+            var application = new Manifest(manifestUri, options);
             application.ProcessDependencies();
 
             Environment.CurrentDirectory = wd;
