@@ -65,8 +65,7 @@ namespace Packager
                 File.Copy(Path.Combine(directory.FullName, file.Name), Path.Combine(target.FullName, file.Name), true);
             }
             xml = GenerateDeploymentManifest(manifest, File.ReadAllBytes(manifestPath));
-            File.WriteAllText(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
-            File.Copy(Path.Combine(target.FullName, Path.GetFileName(project) + ".application"), Path.Combine(directory.FullName, "_publish", Path.GetFileName(project) + ".application"), true);
+            File.WriteAllText(Path.Combine(directory.FullName, "_publish", Path.GetFileNameWithoutExtension(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
         }
 
         private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)
