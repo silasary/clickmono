@@ -188,7 +188,7 @@ namespace ClickMac
                     var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
                     key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey((string)key.GetValue(""));
                     var manifest = (string)key.GetValue("DeploymentProviderUrl");
-                    return GetLocalManifest(manifest);
+                    return manifest;
                 }
             }
             catch (Exception) { }
@@ -199,7 +199,7 @@ namespace ClickMac
                 data = ConvertPlistToStringDict((Dictionary<string, object>)Plist.readPlist("assocs.plist"));
             else
                 data = new Dictionary<string, string>();
-            return GetLocalManifest(data[ext]);
+            return data[ext];
             }
             catch (Exception) { }
             return null;

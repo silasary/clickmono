@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
+using ClickMono.Common;
 
 namespace ClickMac
 {
@@ -278,8 +279,8 @@ namespace ClickMac
             else
             {
                 int size = int.Parse(dependentAssembly.Attribute("size").Value);
-                string digestValue = dependentAssembly.Element(Namespace.XName("hash", ns.asmv2)).Element(Namespace.XName("DigestValue", ns.dsig)).Value;
-                string digestMethod = dependentAssembly.Element(Namespace.XName("hash", ns.asmv2)).Element(Namespace.XName("DigestMethod", ns.dsig)).Attribute("Algorithm").Value.Split('#')[1];
+                string digestValue = dependentAssembly.Element(Xmlns.asmv2hash).Element(Xmlns.dsigDigestValue).Value;
+                string digestMethod = dependentAssembly.Element(Xmlns.asmv2hash).Element(Xmlns.dsigDigestMethod).Attribute("Algorithm").Value.Split('#')[1];
                 if (new FileInfo(filename).Length != size) // HACK: Not an actual equality test. (Although it's usually good enough)
                 {
                     isInvalid = true;

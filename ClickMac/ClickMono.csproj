@@ -86,7 +86,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Crypto.cs" />
+    <Compile Include="Common\Crypto.cs" />
+    <Compile Include="Common\Xmlns.cs" />
     <Compile Include="CurlWrapper.cs" />
     <Compile Include="DeploymentOptions.cs" />
     <Compile Include="Namespace.cs" />

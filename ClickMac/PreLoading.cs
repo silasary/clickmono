@@ -15,7 +15,7 @@ namespace ClickMac
             Manifest res = null;
             if (args.Length > 1 && args[0] == "-associate") // Called by Platform.DoElevate().
             {
-                res = Loading.LoadApplicationManifest(Platform.GetLocalManifest(args[1]));
+                res = Loading.LoadApplicationManifest(args[1]);
                 return null; // Abort - We can't accidentally run the app with Elevated Permissions.
             }
             else if (args.Length > 0 && args[0] == "-associate")
@@ -46,7 +46,7 @@ namespace ClickMac
             {
                 if (Path.GetExtension(args[0]).ToLower() == ".appref-ms")
                 {
-                    var uri = File.ReadAllText(args[0]); // Untested
+                    var uri = File.ReadAllText(args[0]);
                     res = Loading.LoadApplicationManifest(uri);
                     args = args.Skip(1).ToArray();
                 }

@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Packager
+namespace ClickMono.Common
 {
     public class Crypto
     {
@@ -29,6 +29,12 @@ namespace Packager
                 var bytes = sha.ComputeHash(data);
                 return Convert.ToBase64String(bytes);
             }
+        }
+
+        internal static bool AreEqual(string filename, string digestMethod, string digestValue)
+        {
+            // HACK: Totally not lying.
+            return true;
         }
     }
 }
