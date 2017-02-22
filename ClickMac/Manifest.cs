@@ -265,10 +265,10 @@ namespace ClickMac
 
         private static bool VerifyExistingFile(XElement dependentAssembly, string filename)
         {
-            bool mustDownload = false;
+            bool isInvalid = false;
             if (!File.Exists(filename))
             {
-                mustDownload = true;
+                isInvalid = true;
             }
             else
             {
@@ -277,14 +277,14 @@ namespace ClickMac
                 string digestMethod = dependentAssembly.Element(Namespace.XName("hash", ns.asmv2)).Element(Namespace.XName("DigestMethod", ns.dsig)).Attribute("Algorithm").Value.Split('#')[1];
                 if (new FileInfo(filename).Length != size) // HACK: Not an actual equality test. (Although it's usually good enough)
                 {
-                    mustDownload = true;
+                    isInvalid = true;
                 }
                 if (!Crypto.AreEqual(filename, digestMethod, digestValue))
                 {
-                    mustDownload = true;
+                    isInvalid = true;
                 }
 
-                if (mustDownload)
+                if (isInvalid)
                 {
                     if (File.Exists(filename + "._"))
                         File.Delete(filename + "._");
@@ -292,7 +292,7 @@ namespace ClickMac
                 }
             }
 
-            return mustDownload;
+            return isInvalid;
         }
 
         private void GetFile(XElement file, string path)
@@ -303,8 +303,8 @@ namespace ClickMac
             if (!Directory.Exists(Path.GetDirectoryName(filename)))
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
             Console.WriteLine("Getting {0}", filename);
-            bool downloaded = VerifyExistingFile(file, filename);
-            if (!downloaded)
+            bool invalid = VerifyExistingFile(file, filename);
+            if (invalid)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
                 try
