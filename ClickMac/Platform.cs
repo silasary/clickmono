@@ -12,6 +12,7 @@ namespace ClickMac
     public static class Platform
     {
         public static readonly bool IsRunningOnMono = (Type.GetType("Mono.Runtime") != null);
+        private static string libraryLocation;
 
         static string InfoPlist { get { return Program.infoPlist; } }
 
@@ -233,27 +234,45 @@ namespace ClickMac
             }
         }
 
+        public static string LibraryLocation {
+            get
+            {
+                if (string.IsNullOrEmpty(libraryLocation))
+                {
+                    libraryLocation = Environment.CurrentDirectory; // If all else fails, fall back to Portable Mode.
+                    switch (GetPlatform().Platform)
+                    {
+                        case PlatformID.MacOSX:  // ~/Library/
+                            libraryLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "ClickOnce");
+                            break;
+                        case PlatformID.Win32NT: // ~/Appdata/Local
+                        case PlatformID.Unix:    // ~/.config/
+                            var oldpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ClickMac");
+                            libraryLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Apps", "ClickOnce");
+                            if (Directory.Exists(oldpath))
+                                libraryLocation = oldpath;
+                            break;
+                        default:
+
+                            break;
+                    }
+                    Directory.CreateDirectory(libraryLocation);
+                    Directory.CreateDirectory(Path.Combine(libraryLocation, "Manifests"));
+                }
+                return libraryLocation;
+            }
+            set
+            {
+                libraryLocation = value;
+                Directory.CreateDirectory(libraryLocation);
+                Directory.CreateDirectory(Path.Combine(libraryLocation, "Manifests"));
+            }
+        }
+
+        [Obsolete]
         public static string GetLibraryLocation()
         {
-            var path = Environment.CurrentDirectory; // If all else fails, fall back to Portable Mode.
-            switch (GetPlatform().Platform)
-            {
-                case PlatformID.MacOSX:  // ~/Library/
-                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "ClickOnce");
-                    break;
-                case PlatformID.Win32NT: // ~/Appdata/Local
-                case PlatformID.Unix:    // ~/.config/
-                    var oldpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ClickMac");
-                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Apps", "ClickOnce");
-                    if (Directory.Exists(oldpath))
-                        path = oldpath;
-                    break;
-                default:
-
-                    break;
-            }
-            Directory.CreateDirectory(path);
-            return path;
+            return LibraryLocation;
         }
 
     }

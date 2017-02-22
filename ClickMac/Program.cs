@@ -91,10 +91,12 @@ namespace ClickMac
 
         private static bool CheckForSelfUpdate(string[] args)
         {
-            #if DEBUG
-                return false;
-            #endif
+#if DEBUG
+             return false;
+#endif
+#pragma warning disable CS0162 // Unreachable code detected
             Environment.CurrentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+#pragma warning restore CS0162 // Unreachable code detected
             try
             {
                 if (File.Exists("ClickMac.old.exe"))

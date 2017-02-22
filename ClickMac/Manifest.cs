@@ -34,6 +34,7 @@ namespace ClickMac
 
         public List<Manifest> Children { get; private set; } = new List<Manifest>();
         public readonly DeploymentOptions Options;
+        public readonly string Identity;
 
         public Manifest(string Uri, DeploymentOptions options, string subfolder = "")
         {
@@ -58,7 +59,7 @@ namespace ClickMac
                 }
             }
             DiskLocation = Xml.Root.Element(Xmlns.asmv1assemblyIdentity).Attribute("name").Value;
-
+            Identity = string.Format("{0}_{1}", Path.GetFileNameWithoutExtension(DiskLocation), Xml.Root.Element(Xmlns.asmv1assemblyIdentity).Attribute("version").Value);
             var deployment = Xml.Root.Element(Xmlns.asmv2deployment);
             if (deployment != null)
             {
@@ -229,7 +230,7 @@ namespace ClickMac
             var codebase = FixFileSeperator(dependentAssembly.Attribute("codebase").Value);
             var assemblyIdentity = dependentAssembly.Element(Xmlns.asmv2assemblyIdentity);
             string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
-            string dependancyDirectory = Path.Combine(Platform.GetLibraryLocation(), version);
+            string dependancyDirectory = Path.Combine(Platform.LibraryLocation, version);
             Directory.CreateDirectory(dependancyDirectory);
             try
             {
@@ -261,7 +262,7 @@ namespace ClickMac
             }
             if (!String.IsNullOrWhiteSpace(Subfolder))
             {
-                var dest = Path.Combine(Platform.GetLibraryLocation(), Subfolder, Path.GetFileName(codebase));
+                var dest = Path.Combine(Platform.LibraryLocation, Subfolder, Path.GetFileName(codebase));
                 if (!File.Exists(dest))
                 {
                     File.Copy(filename, dest);

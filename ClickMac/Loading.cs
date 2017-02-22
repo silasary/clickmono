@@ -27,7 +27,7 @@ namespace ClickMac
             Log("Loading {0}", manifestUri);
             var wd = Environment.CurrentDirectory;
             if (!Loading.PortableMode)
-                Environment.CurrentDirectory = Platform.GetLibraryLocation( );
+                Environment.CurrentDirectory = Platform.LibraryLocation;
 
             DeploymentOptions options = new DeploymentOptions();
 
