@@ -1,11 +1,8 @@
 ﻿namespace ClickMac
 {
-    internal class DeploymentOptions
-    {
-        public DeploymentOptions()
-        {
-        }
-
+    public class DeploymentOptions
+    { 
         public bool MapFileExtensions { get; internal set; }
+        public int Errors { get; internal set; }
     }
 }

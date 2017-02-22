@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace ClickMac
 {
-    internal static class Loading
+    public static class Loading
     {
         public delegate void log(string s, params object[] args);
         public static log Log;
@@ -40,13 +40,13 @@ namespace ClickMac
 
         public enum KnownTools { Packager, };
 
-        internal static Manifest LoadWellKnownTool(KnownTools tool)
+        public static Manifest LoadWellKnownTool(KnownTools tool)
         {
-            string url = null;
+            string url;
             switch (tool)
             {
                 case KnownTools.Packager:
-                    url = @"http://ci.katelyngigante.com/job/silasary/job/clickmono/job/master/lastSuccessfulBuild/artifact/Packager/bin/Release/_publish/Packager.application";
+                    url = @"http://katelyngigante.com/deployment/packager/Packager.application";
                     break;
                 default:
                     throw new NotImplementedException();

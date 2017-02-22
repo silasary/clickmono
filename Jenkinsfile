@@ -16,6 +16,11 @@ node {
 		mono("Packager/bin/Release/Packager.exe", "ClickMac/bin/Release/ClickMac.exe")
 	}
     
+	stage('Test'){
+		mono('Tests/bin/Release/Tests.exe','')
+		//junit "TestResult.xml"
+	}
+
     stage('Archive'){
 		archive '**/bin/Release/'
 	}

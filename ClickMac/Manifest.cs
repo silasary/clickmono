@@ -9,7 +9,7 @@ using System.Security.Cryptography.Xml;
 
 namespace ClickMac
 {
-    internal class Manifest
+    public class Manifest
     {
         public static string GetUrlFolder(string url)
         {
@@ -367,8 +367,10 @@ namespace ClickMac
                     }
                 }
             }
-            catch (WebException)
+            catch (WebException c)
             {
+                Options.Errors++;
+                Console.WriteLine(c);
             }
             if (File.Exists(filename + "._"))
             {
