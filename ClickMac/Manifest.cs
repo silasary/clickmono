@@ -57,9 +57,9 @@ namespace ClickMac
                     }
                 }
             }
-            DiskLocation = Xml.Root.Element(Namespace.XName("assemblyIdentity", ns.asmv1)).Attribute("name").Value;
+            DiskLocation = Xml.Root.Element(Xmlns.asmv1assemblyIdentity).Attribute("name").Value;
 
-            var deployment = Xml.Root.Element(Namespace.XName("deployment", ns.asmv2));
+            var deployment = Xml.Root.Element(Xmlns.asmv2deployment);
             if (deployment != null)
             {
                 XAttribute mapFileExtensions = deployment.Attribute("mapFileExtensions");
@@ -67,7 +67,7 @@ namespace ClickMac
                 {
                     options.MapFileExtensions = true;
                 }
-                if (deployment.Element(Namespace.XName("deploymentProvider", ns.asmv2)) != null)
+                if (deployment.Element(Xmlns.asmv2deploymentProvider) != null)
                 {
                     UpdateManifest(deployment);
                 }
@@ -76,9 +76,9 @@ namespace ClickMac
 
         private void UpdateManifest(XElement deployment)
         {
-            var updateLocation = deployment.Element(Namespace.XName("deploymentProvider", ns.asmv2)).Attribute("codebase").Value;
+            var updateLocation = deployment.Element(Xmlns.asmv2deploymentProvider).Attribute("codebase").Value;
 
-            var PublisherIdentity = Xml.Root.Element(Namespace.XName("publisherIdentity", ns.asmv2));
+            var PublisherIdentity = Xml.Root.Element(Xmlns.asmv2publisherIdentity);
             if (PublisherIdentity == null)
             {
                 // Deployed with no security. Blindly update.
@@ -186,31 +186,31 @@ namespace ClickMac
         public void ProcessDependencies()
         {
             var path = GetUrlFolder(Location);
-            foreach (var dependency in Xml.Root.Elements(Namespace.XName("dependency", ns.asmv2)))
+            foreach (var dependency in Xml.Root.Elements(Xmlns.asmv2dependency))
             {
                 ProcessDependency(dependency, path);
             }
-            foreach (var file in Xml.Root.Elements(Namespace.XName("file", ns.asmv2)))
+            foreach (var file in Xml.Root.Elements(Xmlns.asmv2file))
             {
                 GetFile(file, path);
             }
-            foreach (var fa in Xml.Root.Elements(Namespace.XName("fileAssociation", ns.cov1)))
+            foreach (var fa in Xml.Root.Elements(Xmlns.clickoncev1fileAssociation))
             {
                 Platform.AssociateFile(fa, this);
             }
-            var entryPoint = Xml.Root.Element(Namespace.XName("entryPoint", ns.asmv2));
+            var entryPoint = Xml.Root.Element(Xmlns.asmv2entryPoint);
             if (entryPoint != null)
             {
-                entry.executable = entryPoint.Element(Namespace.XName("commandLine", ns.asmv2)).Attribute("file").Value;
+                entry.executable = entryPoint.Element(Xmlns.asmv2commandLine).Attribute("file").Value;
                 entry.folder = new DirectoryInfo(Subfolder).FullName; // Alsolute reference.
-                XElement identity = entryPoint.Element(Namespace.XName("assemblyIdentity", ns.asmv2));
+                XElement identity = entryPoint.Element(Xmlns.asmv2assemblyIdentity);
                 entry.version = identity.Attribute("version").Value;
                 entry.displayName = identity.Attribute("name").Value;
             }
-            var description = Xml.Root.Element(Namespace.XName("description", ns.asmv1));
+            var description = Xml.Root.Element(Xmlns.asmv1description);
             if (description != null)
             {
-                var iconFile = description.Attribute(Namespace.XName("iconFile", ns.asmv2));
+                var iconFile = description.Attribute(Xmlns.asmv2iconFile);
                 if (iconFile != null && !string.IsNullOrWhiteSpace(iconFile.Value))
                 {
                     if (File.Exists(Path.Combine(Subfolder, iconFile.Value)))
@@ -223,11 +223,11 @@ namespace ClickMac
 
         private void ProcessDependency(XElement dependency, string path)
         {
-            var dependentAssembly = dependency.Element(Namespace.XName("dependentAssembly", ns.asmv2));
+            var dependentAssembly = dependency.Element(Xmlns.asmv2dependentAssembly);
             if (dependentAssembly == null || dependentAssembly.Attribute("dependencyType").Value != "install")
                 return;
             var codebase = FixFileSeperator(dependentAssembly.Attribute("codebase").Value);
-            var assemblyIdentity = dependentAssembly.Element(Namespace.XName("assemblyIdentity", ns.asmv2));
+            var assemblyIdentity = dependentAssembly.Element(Xmlns.asmv2assemblyIdentity);
             string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
             string dependancyDirectory = Path.Combine(Platform.GetLibraryLocation(), version);
             Directory.CreateDirectory(dependancyDirectory);

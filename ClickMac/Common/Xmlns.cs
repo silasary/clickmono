@@ -56,12 +56,14 @@ namespace ClickMono.Common
         public static XName asmv2dependentOS = asmv2ns.GetName("dependentOS");
         public static XName asmv2osVersionInfo = asmv2ns.GetName("osVersionInfo");
         public static XName asmv2os = asmv2ns.GetName("os");
+        public static XName asmv2publisherIdentity = asmv2ns.GetName("publisherIdentity");
 
         public static XName asmv3requestedPrivileges = asmv3ns.GetName("requestedPrivileges");
         public static XName asmv3requestedExecutionLevel = asmv3ns.GetName("requestedExecutionLevel");
 
         public static XName clickoncev1useManifestForTrust = clickoncev1ns.GetName("useManifestForTrust");
         public static XName clickoncev1createDesktopShortcut = clickoncev1ns.GetName("createDesktopShortcut");
+        public static XName clickoncev1fileAssociation = clickoncev1ns.GetName("fileAssociation");
 
         public static XName clickoncev2compatibleFrameworks = clickoncev2ns.GetName("compatibleFrameworks");
         public static XName clickoncev2framework = clickoncev2ns.GetName("framework");
@@ -74,6 +76,5 @@ namespace ClickMono.Common
         public static XName dsigAlgorithm = XName.Get("Algorithm");// dsigns.GetName("Algorithm");
         public static XName dsigDigestMethod = dsigns.GetName("DigestMethod");
         public static XName dsigDigestValue = dsigns.GetName("DigestValue");
-
     }
 }
