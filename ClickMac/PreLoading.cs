@@ -25,7 +25,9 @@ namespace ClickMac
             else if (args.Length > 0 && args[0] == "--packager")
             {
                 args = args.Skip(1).ToArray();
-                return Loading.LoadWellKnownTool(Loading.KnownTools.Packager);
+                Manifest manifest = Loading.LoadWellKnownTool(Loading.KnownTools.Packager);
+                Environment.CurrentDirectory = Program.InvokationDirectory;
+                return manifest;
             }
             else if (args.Length > 1 && args[0] == "-o")  // Called by Explorer, when the user double-clicks a file.
             {

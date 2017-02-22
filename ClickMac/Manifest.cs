@@ -228,10 +228,11 @@ namespace ClickMac
             var codebase = FixFileSeperator(dependentAssembly.Attribute("codebase").Value);
             var assemblyIdentity = dependentAssembly.Element(Namespace.XName("assemblyIdentity", ns.asmv2));
             string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
-            Directory.CreateDirectory(version);
+            string dependancyDirectory = Path.Combine(Platform.GetLibraryLocation(), version);
+            Directory.CreateDirectory(dependancyDirectory);
             try
             {
-                foreach (var deploy in Directory.EnumerateFiles(version, "*.deploy", SearchOption.AllDirectories))
+                foreach (var deploy in Directory.EnumerateFiles(dependancyDirectory, "*.deploy", SearchOption.AllDirectories))
                 {
                     var dest = deploy.Substring(0, deploy.Length - ".deploy".Length);
                     if (File.Exists(dest))
@@ -240,9 +241,10 @@ namespace ClickMac
                 }
             }
             catch (IOException) { }
-            string filename = Path.Combine(".", version, Path.GetFileName(codebase));
-            bool mustDownload = !VerifyExistingFile(dependentAssembly, filename);
-            if (mustDownload)
+
+            string filename = Path.Combine(dependancyDirectory, Path.GetFileName(codebase));
+            bool invalid = IsExistingFileInvalid(dependentAssembly, filename);
+            if (invalid)
             {
                 Loading.Log("Getting Dependency {0}", codebase);
                 DownloadFile(path, codebase, filename);
@@ -258,12 +260,15 @@ namespace ClickMac
             }
             if (!String.IsNullOrWhiteSpace(Subfolder))
             {
-                if (!File.Exists(Path.Combine(Subfolder, Path.GetFileName(codebase))))
-                    File.Copy(Path.Combine(".", version, Path.GetFileName(codebase)), Path.Combine(Subfolder, Path.GetFileName(codebase)));
+                var dest = Path.Combine(Platform.GetLibraryLocation(), Subfolder, Path.GetFileName(codebase));
+                if (!File.Exists(dest))
+                {
+                    File.Copy(filename, dest);
+                }
             }
         }
 
-        private static bool VerifyExistingFile(XElement dependentAssembly, string filename)
+        private static bool IsExistingFileInvalid(XElement dependentAssembly, string filename)
         {
             bool isInvalid = false;
             if (!File.Exists(filename))
@@ -303,7 +308,7 @@ namespace ClickMac
             if (!Directory.Exists(Path.GetDirectoryName(filename)))
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
             Console.WriteLine("Getting {0}", filename);
-            bool invalid = VerifyExistingFile(file, filename);
+            bool invalid = IsExistingFileInvalid(file, filename);
             if (invalid)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));

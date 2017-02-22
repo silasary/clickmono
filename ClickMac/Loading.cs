@@ -51,9 +51,7 @@ namespace ClickMac
                 default:
                     throw new NotImplementedException();
             }
-            var res = Loading.LoadApplicationManifest(url);
-            Environment.CurrentDirectory = Program.InvokationDirectory;
-            return res;
+            return LoadApplicationManifest(url);
         }
     }
 }
