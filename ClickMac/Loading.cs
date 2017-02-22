@@ -37,5 +37,23 @@ namespace ClickMac
             Environment.CurrentDirectory = wd;
             return application;
         }
+
+        public enum KnownTools { Packager, };
+
+        internal static Manifest LoadWellKnownTool(KnownTools tool)
+        {
+            string url = null;
+            switch (tool)
+            {
+                case KnownTools.Packager:
+                    url = @"http://ci.katelyngigante.com/job/silasary/job/clickmono/job/master/lastSuccessfulBuild/artifact/Packager/bin/Release/_publish/Packager.application";
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            var res = Loading.LoadApplicationManifest(url);
+            Environment.CurrentDirectory = Program.InvokationDirectory;
+            return res;
+        }
     }
 }

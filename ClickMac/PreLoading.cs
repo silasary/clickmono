@@ -24,10 +24,8 @@ namespace ClickMac
             }
             else if (args.Length > 0 && args[0] == "--packager")
             {
-                res = Loading.LoadApplicationManifest(@"http://ci.katelyngigante.com/job/silasary/job/clickmono/job/master/lastSuccessfulBuild/artifact/Packager/bin/Release/_publish/Packager.application");
                 args = args.Skip(1).ToArray();
-                Environment.CurrentDirectory = Program.InvokationDirectory;
-                return res;
+                return Loading.LoadWellKnownTool(Loading.KnownTools.Packager);
             }
             else if (args.Length > 1 && args[0] == "-o")  // Called by Explorer, when the user double-clicks a file.
             {
