@@ -13,7 +13,7 @@ namespace ClickMac
     {
         public static readonly bool IsRunningOnMono = (Type.GetType("Mono.Runtime") != null);
 
-        static string infoPlist { get { return Program.infoPlist; } }
+        static string InfoPlist { get { return Program.infoPlist; } }
 
         #region docs
         /*
@@ -42,7 +42,7 @@ namespace ClickMac
         internal static void AssociateFile(XEleDict fa, Manifest application)
         {
             var ext = fa["extension"].TrimStart('.');
-            if (File.Exists(infoPlist)) // OSX is the only one who cares about plists.
+            if (File.Exists(InfoPlist)) // OSX is the only one who cares about plists.
                 AssociateFileExtMac(fa, ext);
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
@@ -153,7 +153,7 @@ namespace ClickMac
         private static void AssociateFileExtMac(XEleDict fa, string ext)
         {
 
-            Dictionary<string, dynamic> plist = (Dictionary<string, dynamic>)Plist.readPlist(infoPlist);
+            Dictionary<string, dynamic> plist = (Dictionary<string, dynamic>)Plist.readPlist(InfoPlist);
 
             List<Dictionary<string, dynamic>> CFBundleDocumentTypes;
             if (plist.ContainsKey("CFBundleDocumentTypes"))
@@ -176,7 +176,7 @@ namespace ClickMac
             ndict.Add("CFBundleTypeIconFile", Loading.FixFileSeperator(fa["defaultIcon"]));
             ndict.Add("CFBundleTypeName", fa["description"]);
 
-            PlistCS.Plist.writeXml(plist, infoPlist);
+            PlistCS.Plist.writeXml(plist, InfoPlist);
         }
 
         internal static string GetManifestForExt(string ext)
@@ -205,11 +205,12 @@ namespace ClickMac
             return null;
         }
 
+        [Obsolete("We support Online manifests now.  We don't need to lose info like this.")]
         public static string GetLocalManifest(string manifest)
         {
-            var localmanifest = Path.Combine(Path.GetDirectoryName(Program.Location), Path.GetFileName(manifest));
-            if (File.Exists(localmanifest))
-                return localmanifest;
+            //var localmanifest = Path.Combine(Path.GetDirectoryName(Program.Location), Path.GetFileName(manifest));
+            //if (File.Exists(localmanifest))
+            //    return localmanifest;
             return manifest;
         }
 
@@ -242,7 +243,10 @@ namespace ClickMac
                     break;
                 case PlatformID.Win32NT: // ~/Appdata/Local
                 case PlatformID.Unix:    // ~/.config/
-                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ClickMac");
+                    var oldpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ClickMac");
+                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Apps", "ClickOnce");
+                    if (Directory.Exists(oldpath))
+                        path = oldpath;
                     break;
                 default:
 
