@@ -139,9 +139,9 @@ namespace ClickMac
             };
             xdoc.Load(Location);
             SignedXml signed = new SignedXml(xdoc);
-
-            var pubName = xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["name"].Value;
-            var pubHash = xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["issuerKeyHash"].Value;
+            XmlNode publisherIdentity = xdoc.GetElementsByTagName("publisherIdentity")[0];
+            var pubName = publisherIdentity.Attributes["name"].Value;
+            var pubHash = publisherIdentity.Attributes["issuerKeyHash"].Value;
 
             XmlNodeList nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
             if (nodeList.Count == 0)
@@ -161,8 +161,8 @@ namespace ClickMac
                 };
                 xdoc.Load(updatedLocation);
                 if (
-                    pubName != xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["name"].Value || 
-                    pubHash != xdoc.GetElementsByTagName("publisherIdentity")[0].Attributes["issuerKeyHash"].Value)
+                    pubName != publisherIdentity.Attributes["name"].Value || 
+                    pubHash != publisherIdentity.Attributes["issuerKeyHash"].Value)
                 {
                     // Different publisher.
                     return false;

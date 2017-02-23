@@ -12,7 +12,7 @@ namespace Packager
         private const string CONST_HASH_TRANSFORM_IDENTITY = "urn:schemas-microsoft-com:HashTransforms.Identity";
         private const string CONST_NULL_PUBKEY = "0000000000000000";
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             Console.WriteLine("Packager.exe invoked with:");
             Console.WriteLine($"\tArgs={string.Join("|", args)}");
@@ -20,7 +20,7 @@ namespace Packager
             if (args.Length == 0)
             {
                 Console.WriteLine("No target specified.");
-                return;
+                return 1;
             }
             else if (File.Exists(args[0]))
             {
@@ -67,6 +67,7 @@ namespace Packager
             }
             xml = GenerateDeploymentManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(directory.FullName, "_publish", Path.GetFileNameWithoutExtension(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
+            return 0;
         }
 
         private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)

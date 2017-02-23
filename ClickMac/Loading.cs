@@ -34,6 +34,7 @@ namespace ClickMac
             var application = new Manifest(manifestUri, options);
             application.ProcessDependencies();
 
+            ApplicationStore.Install(application);
             Environment.CurrentDirectory = wd;
             return application;
         }
