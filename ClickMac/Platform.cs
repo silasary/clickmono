@@ -62,7 +62,7 @@ namespace ClickMac
 
         private static void DoElevate(XEleDict fa, string ext, Manifest application)
         {
-            //TODO: Make this better - We're currently elevating once per extension.
+            //TODO [7] : Make this better - We're currently elevating once per extension.
             //File.WriteAllText("assoc.xml", fa.inner.ToString());
             //Process process = Process.Start(new ProcessStartInfo
             //{
@@ -168,7 +168,7 @@ namespace ClickMac
                 List<string> types = (List<string>)dict["CFBundleTypeExtensions"];
                 if (types.Contains(ext))
                 {
-                    //TODO: Make sure other props [ie: Icon] are correctly set.
+                    //TODO [8] : Make sure other props [ie: Icon] are correctly set.
                     return;
                 }
             }
