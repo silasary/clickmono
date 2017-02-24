@@ -280,17 +280,7 @@ namespace Packager
                        new XAttribute("processorArchitecture", "msil")
                    ),
                    ManifestDescription(manifest),
-                   new XElement(Xmlns.asmv2deployment,
-                       new XAttribute("install", "true"),
-                       new XAttribute("mapFileExtensions", "false"),
-                       new XAttribute("trustURLParameters", "true"),
-                       new XAttribute(Xmlns.clickoncev1createDesktopShortcut, true),
-                   new XElement(Xmlns.asmv2subscription,
-                       new XElement(Xmlns.asmv2update,
-                           new XElement(Xmlns.asmv2beforeApplicationStartup))),
-                       new XElement(Xmlns.asmv2deploymentProvider,
-                           new XAttribute("codebase", manifest.DeploymentProviderUrl))
-                   ),
+                   DeploymentNode(manifest),
                    new XElement(Xmlns.clickoncev2compatibleFrameworks,
                        new XElement(Xmlns.clickoncev2framework,
                            new XAttribute("targetVersion", "4.5"),
@@ -313,9 +303,35 @@ namespace Packager
                    )
                ));
 
-            if (string.IsNullOrWhiteSpace(manifest.DeploymentProviderUrl))
+            if (string.IsNullOrWhiteSpace(manifest.Deployment.ProviderUrl))
                 document.Descendants(Xmlns.asmv2deploymentProvider).Single().Remove();
             return document;
+        }
+
+        private static XElement DeploymentNode(Manifest manifest)
+        {
+            XElement UpdateNode;
+            XElement Deployment = new XElement(Xmlns.asmv2deployment,
+                                   new XAttribute("install", manifest.Deployment.Install),
+                                   new XAttribute("mapFileExtensions", "false"),
+                                   new XAttribute("trustURLParameters", "true"),
+                                   new XAttribute(Xmlns.clickoncev1createDesktopShortcut, manifest.Deployment.CreateDesktopShortcut),
+                                new XElement(Xmlns.asmv2subscription,
+                                   UpdateNode = new XElement(Xmlns.asmv2update)),
+                                   new XElement(Xmlns.asmv2deploymentProvider,
+                                       new XAttribute("codebase", manifest.Deployment.ProviderUrl))
+                               );
+            if (manifest.Deployment.MaximumAge.TotalHours == 0)
+            {
+                UpdateNode.Add(new XElement(Xmlns.asmv2beforeApplicationStartup));
+            }
+            else
+            {
+                UpdateNode.Add(new XElement(Xmlns.asmv2expiration, 
+                    new XAttribute("maximumAge", manifest.Deployment.MaximumAge.TotalHours), 
+                    new XAttribute("unit", "hours")));
+            }
+            return Deployment;
         }
 
         private static XElement ManifestDescription(Manifest manifest)
@@ -324,12 +340,6 @@ namespace Packager
                                     new XAttribute(Xmlns.asmv2publisher, manifest.entryPoint.Publisher),
                                     new XAttribute(Xmlns.asmv2product, manifest.entryPoint.Product)
                                 );
-            //if (!string.IsNullOrEmpty(manifest.iconFile))
-            //{
-            //    description.Add(
-            //        new XAttribute(Xmlns.asmv2iconFile, manifest.iconFile));
-            //}
-
             return description;
         }
     }

@@ -57,6 +57,7 @@ namespace ClickMono.Common
         public static XName asmv2osVersionInfo = asmv2ns.GetName("osVersionInfo");
         public static XName asmv2os = asmv2ns.GetName("os");
         public static XName asmv2publisherIdentity = asmv2ns.GetName("publisherIdentity");
+        public static XName asmv2expiration = asmv2ns.GetName("expiration");
 
         public static XName asmv3requestedPrivileges = asmv3ns.GetName("requestedPrivileges");
         public static XName asmv3requestedExecutionLevel = asmv3ns.GetName("requestedExecutionLevel");

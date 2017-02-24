@@ -18,7 +18,16 @@ namespace Packager
         public string Version { get; set; } = string.Empty;
 
         public List<ManifestFile> Files { get; set; }
-        public string DeploymentProviderUrl { get; internal set; } = string.Empty;
+
+        public DeploymentOptions Deployment { get; } = new DeploymentOptions();
+    }
+
+    public class DeploymentOptions
+    {
+        public string ProviderUrl { get; internal set; } = string.Empty;
+        public bool CreateDesktopShortcut { get; set; } = true;
+        public bool Install { get; set; } = true;
+        public TimeSpan MaximumAge { get; set; };
     }
 
     public class ManifestFile
