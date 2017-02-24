@@ -177,7 +177,7 @@ namespace ClickMac
             ndict.Add("CFBundleTypeIconFile", Loading.FixFileSeperator(fa["defaultIcon"]));
             ndict.Add("CFBundleTypeName", fa["description"]);
 
-            PlistCS.Plist.writeXml(plist, InfoPlist);
+            Plist.writeXml(plist, InfoPlist);
         }
 
         internal static string GetManifestForExt(string ext)

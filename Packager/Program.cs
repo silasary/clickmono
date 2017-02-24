@@ -12,22 +12,64 @@ namespace Packager
         private const string CONST_HASH_TRANSFORM_IDENTITY = "urn:schemas-microsoft-com:HashTransforms.Identity";
         private const string CONST_NULL_PUBKEY = "0000000000000000";
 
+        public StartupOptions Options { get; private set; }
+
         static int Main(string[] args)
         {
             Console.WriteLine("Packager.exe invoked with:");
             Console.WriteLine($"\tArgs={string.Join("|", args)}");
             Console.WriteLine($"\tWorking Directory={Environment.CurrentDirectory}");
+            var program = new Program();
             if (args.Length == 0)
             {
                 Console.WriteLine("No target specified.");
                 return 1;
             }
-            else if (File.Exists(args[0]))
+            else if (args.Length == 1 && File.Exists(args[0]))
             {
-                Console.WriteLine($"Packaging {args[0]}");
+                var project = new FileInfo(args[0]).FullName;
+                Console.WriteLine($"Packaging {project}");
+                return program.Generate(project);
             }
-            var project = new FileInfo(args[0]).FullName;
+            else
+            {
+                program.Options = new StartupOptions();
+                IterateArgs(args, program.Options);
 
+            }
+            return 1;
+        }
+
+        static void IterateArgs(IEnumerable<string> args, StartupOptions options)
+        {
+            while (args.Any())
+            {
+                switch (args.First())
+                {
+                    case "--generate":
+                        options.Mode = StartupOptions.Modes.Generate;
+                        args = args.Skip(1);
+                        break;
+                    case "--update":
+                        options.Mode = StartupOptions.Modes.Update;
+                        args = args.Skip(1);
+                        break;
+                    case "--deploymentProvider":
+                        options.DeploymentProvider = args.ElementAt(1);
+                        args = args.Skip(2);
+                        break;
+
+                    default:
+                        Console.WriteLine($"UNKNOWN ARG: {args.First()}");
+                        Environment.Exit(1);
+                        break;
+
+                }
+            }
+        }
+
+        public int Generate(string project)
+        {
             var directory = new DirectoryInfo(Path.GetDirectoryName(project));
             var target = directory.CreateSubdirectory("_publish");
 
@@ -47,18 +89,10 @@ namespace Packager
             target = target.CreateSubdirectory(manifest.Version);
             EnumerateFiles(directory, manifest);
             manifest.entryPoint = manifest.Files.Single(n => n.Name == Path.GetFileName(project));
-            //if (manifest.iconFile == null)
-            //{
-            //    var icon = resources.ExtractIcon(project);
-            //    if (icon != null)
-            //    {
-            //        manifest.files.Add(icon);
-            //    }
-            //    manifest.iconFile = icon.Name;
-            //}
 
             var xml = GenerateManifest(directory, manifest);
-            string manifestPath = Path.Combine(target.FullName, Path.GetFileName(project) + ".manifest");
+            var manifestPath = Path.Combine(target.FullName, Path.GetFileName(project) + ".manifest");
+
             File.WriteAllText(manifestPath, xml.ToString(SaveOptions.OmitDuplicateNamespaces));
 
             foreach (var file in manifest.Files)
@@ -74,7 +108,7 @@ namespace Packager
         {
             manifest.Files = new List<ManifestFile>();
 
-            Stack<FileInfo> content = new Stack<FileInfo>();
+            var content = new Stack<FileInfo>();
 
             foreach (var file in directory.EnumerateFiles())
             {
@@ -137,27 +171,17 @@ namespace Packager
                             new XElement(Xmlns.asmv3requestedExecutionLevel,
                                 new XAttribute("level", "asInvoker"),
                                 new XAttribute("uiAccess", "false"))))
-                ),
-                // For reasons I don't quite understand, all clickonce manifests are marked compatible with XP+ (even those on Framework 4.6+)
-                new XElement(Xmlns.asmv2dependency,
-                    new XElement(Xmlns.asmv2dependentOS,
-                        new XElement(Xmlns.asmv2osVersionInfo,
-                            new XElement(Xmlns.asmv2os,
-                                new XAttribute("majorVersion", "5"),
-                                new XAttribute("minorVersion", "1"),
-                                new XAttribute("buildNumber", "2600"),
-                                new XAttribute("servicePackMajor", "0"))))
-                ),
-                new XElement(Xmlns.asmv2dependency,
-                    new XElement(Xmlns.asmv2dependentAssembly,
-                        new XAttribute("dependencyType", "preRequisite"),
-                        new XAttribute("allowDelayedBinding", "true"),
-                        new XElement(Xmlns.asmv2assemblyIdentity,
-                            new XAttribute("name", "Microsoft.Windows.CommonLanguageRuntime"),
-                            new XAttribute("version", "4.0.30319.0")))
                 )
+                //new XElement(Xmlns.asmv2dependency,
+                //    new XElement(Xmlns.asmv2dependentAssembly,
+                //        new XAttribute("dependencyType", "preRequisite"),
+                //        new XAttribute("allowDelayedBinding", "true"),
+                //        new XElement(Xmlns.asmv2assemblyIdentity,
+                //            new XAttribute("name", "Microsoft.Windows.CommonLanguageRuntime"),
+                //            new XAttribute("version", "4.0.30319.0")))
+                //)
             };
-            
+
             foreach (var item in manifest.Files)
             {
                 if (item.Version != null)
@@ -212,7 +236,7 @@ namespace Packager
                     new XAttribute("publicKeyToken", manifest.entryPoint.PublicKeyToken ?? CONST_NULL_PUBKEY),
                     new XAttribute("language", "neutral"),
                     new XAttribute("processorArchitecture", "msil") // TODO: Identify Architecture
-                    //new XAttribute("type", "win32") // TODO: This too.
+                                                                    //new XAttribute("type", "win32") // TODO: This too.
                 );
             }
             else
@@ -327,8 +351,8 @@ namespace Packager
             }
             else
             {
-                UpdateNode.Add(new XElement(Xmlns.asmv2expiration, 
-                    new XAttribute("maximumAge", manifest.Deployment.MaximumAge.TotalHours), 
+                UpdateNode.Add(new XElement(Xmlns.asmv2expiration,
+                    new XAttribute("maximumAge", manifest.Deployment.MaximumAge.TotalHours),
                     new XAttribute("unit", "hours")));
             }
             return Deployment;
