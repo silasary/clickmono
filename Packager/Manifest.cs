@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Packager
 {
@@ -27,7 +25,7 @@ namespace Packager
         public string ProviderUrl { get; internal set; } = string.Empty;
         public bool CreateDesktopShortcut { get; set; } = true;
         public bool Install { get; set; } = true;
-        public TimeSpan MaximumAge { get; set; };
+        public TimeSpan MaximumAge { get; set; }
     }
 
     public class ManifestFile
