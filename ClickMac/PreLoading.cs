@@ -69,7 +69,7 @@ namespace ClickMac
             else
             {
                 var manifests = Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.application");
-                var pref = manifests.FirstOrDefault(x => !Path.GetFileName(x).StartsWith("ClickMac"));
+                var pref = manifests.FirstOrDefault(x => !Path.GetFileName(x).StartsWith("ClickMac", StringComparison.InvariantCultureIgnoreCase));
                 if (pref != null)
                     return res = Loading.LoadApplicationManifest(pref);
 

@@ -25,6 +25,7 @@ namespace ClickMac
             var m = Path.Combine(Platform.LibraryLocation, "Manifests", identity + ".application");
             if (File.Exists(m))
                 File.Delete(m);
+            Cleanup();
 
         }
 
@@ -33,6 +34,7 @@ namespace ClickMac
             // TODO [6] : Delete all bar the latest two versions of each installed app, and remove all unused dependancies.
             // This will prevent unneeded disk bloating, and prevent buildup of too many old versions.
             // It will also allow for true uninstallation (As compared to what currently happens)
+
         }
     }
 }

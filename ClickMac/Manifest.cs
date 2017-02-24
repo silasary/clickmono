@@ -50,10 +50,10 @@ namespace ClickMac
             {
                 using (var curl = new CurlWrapper())
                 {
-                    FileInfo tempFile = curl.GetFile(Location);
+                    var tempFile = curl.GetFile(Location);
                     if (tempFile != null)
                     {
-                        FileStream fileStream = tempFile.OpenRead();
+                        var fileStream = tempFile.OpenRead();
                         Xml = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace);
                     }
                 }
@@ -63,7 +63,7 @@ namespace ClickMac
             var deployment = Xml.Root.Element(Xmlns.asmv2deployment);
             if (deployment != null)
             {
-                XAttribute mapFileExtensions = deployment.Attribute("mapFileExtensions");
+                var mapFileExtensions = deployment.Attribute("mapFileExtensions");
                 if (bool.Parse(mapFileExtensions?.Value ?? "false"))
                 {
                     options.MapFileExtensions = true;
@@ -97,8 +97,8 @@ namespace ClickMac
                 {
                     using (var curl = new CurlWrapper())
                     {
-                        FileInfo tempFile = curl.GetFile(Location);
-                        FileStream fileStream = tempFile.OpenRead();
+                        var tempFile = curl.GetFile(Location);
+                        var fileStream = tempFile.OpenRead();
                         newManifest = XDocument.Load(fileStream, LoadOptions.PreserveWhitespace);
                         newManifest.Save(DiskLocation);
                         fileStream.Close();
@@ -138,12 +138,12 @@ namespace ClickMac
                 PreserveWhitespace = true
             };
             xdoc.Load(Location);
-            SignedXml signed = new SignedXml(xdoc);
+            var signed = new SignedXml(xdoc);
             XmlNode publisherIdentity = xdoc.GetElementsByTagName("publisherIdentity")[0];
             var pubName = publisherIdentity.Attributes["name"].Value;
             var pubHash = publisherIdentity.Attributes["issuerKeyHash"].Value;
 
-            XmlNodeList nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
+            var nodeList = xdoc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
             if (nodeList.Count == 0)
                 return false; // This code should never have been called. Something's probably wrong.  Fail it.
             signed.LoadXml((XmlElement)nodeList[0]);
@@ -204,7 +204,7 @@ namespace ClickMac
             {
                 entry.executable = entryPoint.Element(Xmlns.asmv2commandLine).Attribute("file").Value;
                 entry.folder = new DirectoryInfo(Subfolder).FullName; // Alsolute reference.
-                XElement identity = entryPoint.Element(Xmlns.asmv2assemblyIdentity);
+                var identity = entryPoint.Element(Xmlns.asmv2assemblyIdentity);
                 entry.version = identity.Attribute("version").Value;
                 entry.displayName = identity.Attribute("name").Value;
             }
@@ -229,8 +229,8 @@ namespace ClickMac
                 return;
             var codebase = FixFileSeperator(dependentAssembly.Attribute("codebase").Value);
             var assemblyIdentity = dependentAssembly.Element(Xmlns.asmv2assemblyIdentity);
-            string version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
-            string dependancyDirectory = Path.Combine(Platform.LibraryLocation, version);
+            var version = String.Format("{0}_{1}", assemblyIdentity.Attribute("name").Value, assemblyIdentity.Attribute("version").Value);
+            var dependancyDirectory = Path.Combine(Platform.LibraryLocation, version);
             Directory.CreateDirectory(dependancyDirectory);
             try
             {
@@ -244,8 +244,8 @@ namespace ClickMac
             }
             catch (IOException) { }
 
-            string filename = Path.Combine(dependancyDirectory, Path.GetFileName(codebase));
-            bool invalid = IsExistingFileInvalid(dependentAssembly, filename);
+            var filename = Path.Combine(dependancyDirectory, Path.GetFileName(codebase));
+            var invalid = IsExistingFileInvalid(dependentAssembly, filename);
             if (invalid)
             {
                 Loading.Log("Getting Dependency {0}", codebase);
@@ -279,7 +279,7 @@ namespace ClickMac
             }
             else
             {
-                int size = int.Parse(dependentAssembly.Attribute("size").Value);
+                var size = int.Parse(dependentAssembly.Attribute("size").Value);
                 string digestValue = dependentAssembly.Element(Xmlns.asmv2hash).Element(Xmlns.dsigDigestValue).Value;
                 string digestMethod = dependentAssembly.Element(Xmlns.asmv2hash).Element(Xmlns.dsigDigestMethod).Attribute("Algorithm").Value.Split('#')[1];
                 if (new FileInfo(filename).Length != size) // HACK: Not an actual equality test. (Although it's usually good enough)
@@ -306,11 +306,11 @@ namespace ClickMac
         {
 
             string name = file.Attribute("name").Value;
-            string filename = Path.Combine(Subfolder, name.Replace('\\', Path.DirectorySeparatorChar));
+            var filename = Path.Combine(Subfolder, name.Replace('\\', Path.DirectorySeparatorChar));
             if (!Directory.Exists(Path.GetDirectoryName(filename)))
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
             Console.WriteLine("Getting {0}", filename);
-            bool invalid = IsExistingFileInvalid(file, filename);
+            var invalid = IsExistingFileInvalid(file, filename);
             if (invalid)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
@@ -322,7 +322,7 @@ namespace ClickMac
                 {
                     using (var curl = new CurlWrapper())
                     {
-                        FileInfo tempFile = curl.GetFile(Location);
+                        var tempFile = curl.GetFile(Location);
                         tempFile.MoveTo(filename);
                         Console.WriteLine(tempFile.FullName);
                     }
@@ -356,7 +356,7 @@ namespace ClickMac
             try
             {
                 Loading.Log($"> {url}");
-                WebClient webClient = new WebClient();
+                var webClient = new WebClient();
                 webClient.BaseAddress = path + "/";
                 webClient.DownloadFile(url, filename);
                 return filename;
@@ -365,7 +365,7 @@ namespace ClickMac
             {
                 using (var curl = new CurlWrapper())
                 {
-                    FileInfo tempFile = curl.GetFile(url);
+                    var tempFile = curl.GetFile(url);
                     if (tempFile != null)
                     {
                         tempFile.MoveTo(filename);
