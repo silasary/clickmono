@@ -11,4 +11,6 @@ namespace Packager
 
         public Modes Mode { get; internal set; }
         public string DeploymentProvider { get; internal set; }
+        public string Target { get; internal set; }
     }
+}

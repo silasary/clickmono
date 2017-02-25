@@ -9,6 +9,7 @@ namespace Packager
 {
     partial class Program
     {
+        enum ExitCodes { OK = 0, InvalidArgs = 1, }
         private const string CONST_HASH_TRANSFORM_IDENTITY = "urn:schemas-microsoft-com:HashTransforms.Identity";
         private const string CONST_NULL_PUBKEY = "0000000000000000";
 
@@ -35,7 +36,14 @@ namespace Packager
             {
                 program.Options = new StartupOptions();
                 IterateArgs(args, program.Options);
-
+                if (program.Options.Mode == StartupOptions.Modes.Generate)
+                {
+                    return program.Generate(program.Options.Target);
+                }
+                else
+                {
+                    return program.Update();
+                }
             }
             return 1;
         }
@@ -49,9 +57,13 @@ namespace Packager
                     case "--generate":
                         options.Mode = StartupOptions.Modes.Generate;
                         args = args.Skip(1);
+                        options.Target = args.First();
+                        args = args.Skip(1);
                         break;
                     case "--update":
                         options.Mode = StartupOptions.Modes.Update;
+                        args = args.Skip(1);
+                        options.Target = args.First();
                         args = args.Skip(1);
                         break;
                     case "--deploymentProvider":
@@ -101,6 +113,34 @@ namespace Packager
             }
             xml = GenerateDeploymentManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(directory.FullName, "_publish", Path.GetFileNameWithoutExtension(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
+            return 0;
+        }
+
+        private int Update()
+        {
+            bool deploymentUpdated = false;
+            //bool applicationUpdated = false;
+
+            var DeploymentManifest = XDocument.Load(Options.Target);
+
+            if (!String.IsNullOrEmpty(Options.DeploymentProvider))
+            {
+                var deployment = DeploymentManifest.Descendants(Xmlns.asmv2deployment).SingleOrDefault();
+                if (deployment.Elements(Xmlns.asmv2deploymentProvider) != null)
+                {
+                    deployment.Elements(Xmlns.asmv2deploymentProvider).Single().Attribute("codebase").Value = Options.DeploymentProvider;
+                }
+                else
+                {
+                    deployment.Add(new XElement(Xmlns.asmv2deploymentProvider, new XAttribute("codebase", Options.DeploymentProvider)));
+                }
+                deploymentUpdated = true;
+            }
+
+            if (deploymentUpdated)
+            {
+                DeploymentManifest.Save(Options.Target);
+            }
             return 0;
         }
 
