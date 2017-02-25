@@ -49,6 +49,7 @@ namespace Packager
             cp.ReferencedAssemblies.Add("System.dll");
             cp.GenerateExecutable = true;
             cp.OutputAssembly = exepath;
+            cp.CompilerOptions = "/t:winexe";
             cp.GenerateInMemory = false;
             CompilerResults cr = provider.CompileAssemblyFromSource(cp, snip);
 
