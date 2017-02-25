@@ -14,6 +14,7 @@ node {
 	stage('Publish'){
 		mono("Packager/bin/Release/Packager.exe", "Packager/bin/Release/Packager.exe")
 		mono("Packager/bin/Release/Packager.exe", "ClickMac/bin/Release/ClickMac.exe")
+		sh('cp -v ClickMac/bin/Release/ClickMac.exe ClickMac/bin/Release/_publish/)
 	}
     
 	stage('Test'){

@@ -30,22 +30,42 @@ namespace Packager
             {
                 var project = new FileInfo(args[0]).FullName;
                 Console.WriteLine($"Packaging {project}");
-                return program.Generate(project);
+                program.Options = new StartupOptions
+                {
+                    Target = project,
+                    Mode = StartupOptions.Modes.Generate
+                };
             }
             else
             {
                 program.Options = new StartupOptions();
                 IterateArgs(args, program.Options);
-                if (program.Options.Mode == StartupOptions.Modes.Generate)
-                {
-                    return program.Generate(program.Options.Target);
-                }
-                else
-                {
-                    return program.Update();
-                }
             }
-            return 1;
+            return program.Run();
+        }
+
+        private int Run()
+        {
+            int res = 0;
+            switch (Options.Mode)
+            {
+                case StartupOptions.Modes.Generate:
+                    res = Generate();
+                    break;
+                case StartupOptions.Modes.Update:
+                    res = Update();
+                    break;
+            }
+            if (res > 0)
+                return res;
+            if (!string.IsNullOrEmpty(Options.GenerateBootstrap))
+            {
+                res = Bootstrapper.GenerateBootstrap(Options.DeploymentProvider, Options.GenerateBootstrap);
+            }
+            if (res > 0)
+                return res;
+
+            return res;
         }
 
         static void IterateArgs(IEnumerable<string> args, StartupOptions options)
@@ -67,10 +87,14 @@ namespace Packager
                         args = args.Skip(1);
                         break;
                     case "--deploymentProvider":
+                    case "--deploymentUrl":
                         options.DeploymentProvider = args.ElementAt(1);
                         args = args.Skip(2);
                         break;
-
+                    case "--generateBootstrap":
+                        options.GenerateBootstrap = args.ElementAt(1);
+                        args = args.Skip(2);
+                        break;
                     default:
                         Console.WriteLine($"UNKNOWN ARG: {args.First()}");
                         Environment.Exit(1);
@@ -80,8 +104,9 @@ namespace Packager
             }
         }
 
-        public int Generate(string project)
+        public int Generate()
         {
+            var project = Options.Target;
             var directory = new DirectoryInfo(Path.GetDirectoryName(project));
             var target = directory.CreateSubdirectory("_publish");
 
