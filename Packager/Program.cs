@@ -92,6 +92,7 @@ namespace Packager
                         args = args.Skip(2);
                         break;
                     case "--generateBootstrap":
+                    case "--generateSetup":
                         options.GenerateBootstrap = args.ElementAt(1);
                         args = args.Skip(2);
                         break;
