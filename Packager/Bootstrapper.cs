@@ -65,8 +65,8 @@ namespace Packager
             }
             else
             {
-                Console.WriteLine("Source {0} built into {1} successfully.",
-                    "Bootstrapper", cr.PathToAssembly);
+                Console.WriteLine("Bootstrapper for {0} built into {1} successfully.",
+                    DeploymenyURL, cr.PathToAssembly);
             }
 
             // Return the results of compilation.

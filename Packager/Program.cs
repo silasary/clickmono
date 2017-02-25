@@ -60,7 +60,8 @@ namespace Packager
                 return res;
             if (!string.IsNullOrEmpty(Options.GenerateBootstrap))
             {
-                res = Bootstrapper.GenerateBootstrap(Options.DeploymentProvider, Options.GenerateBootstrap);
+                var exe = Path.Combine(Path.GetDirectoryName(Options.Target), "_publish", "setup.exe");
+                res = Bootstrapper.GenerateBootstrap(Options.DeploymentProvider, exe);
             }
             if (res > 0)
                 return res;
@@ -243,15 +244,15 @@ namespace Packager
                             new XElement(Xmlns.asmv3requestedExecutionLevel,
                                 new XAttribute("level", "asInvoker"),
                                 new XAttribute("uiAccess", "false"))))
+                ),
+                new XElement(Xmlns.asmv2dependency,
+                    new XElement(Xmlns.asmv2dependentAssembly,
+                        new XAttribute("dependencyType", "preRequisite"),
+                        new XAttribute("allowDelayedBinding", "true"),
+                        new XElement(Xmlns.asmv2assemblyIdentity,
+                            new XAttribute("name", "Microsoft.Windows.CommonLanguageRuntime"),
+                            new XAttribute("version", "4.0.30319.0")))
                 )
-                //new XElement(Xmlns.asmv2dependency,
-                //    new XElement(Xmlns.asmv2dependentAssembly,
-                //        new XAttribute("dependencyType", "preRequisite"),
-                //        new XAttribute("allowDelayedBinding", "true"),
-                //        new XElement(Xmlns.asmv2assemblyIdentity,
-                //            new XAttribute("name", "Microsoft.Windows.CommonLanguageRuntime"),
-                //            new XAttribute("version", "4.0.30319.0")))
-                //)
             };
 
             foreach (var item in manifest.Files)
