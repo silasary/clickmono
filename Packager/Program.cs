@@ -343,7 +343,7 @@ namespace Packager
         /// <param name="manifest"></param>
         /// <param name="manifestBytes"></param>
         /// <returns></returns>
-        public static XDocument GenerateDeploymentManifest(Manifest manifest, byte[] manifestBytes)
+        public XDocument GenerateDeploymentManifest(Manifest manifest, byte[] manifestBytes)
         {
             var manifestSize = manifestBytes.Length;
             var manifestDigest = Crypto.GetSha256DigestValue(manifestBytes);
@@ -398,7 +398,7 @@ namespace Packager
             return document;
         }
 
-        private static XElement DeploymentNode(Manifest manifest)
+        private XElement DeploymentNode(Manifest manifest)
         {
             XElement UpdateNode;
             XElement Deployment = new XElement(Xmlns.asmv2deployment,
@@ -420,6 +420,10 @@ namespace Packager
                 UpdateNode.Add(new XElement(Xmlns.asmv2expiration,
                     new XAttribute("maximumAge", manifest.Deployment.MaximumAge.TotalHours),
                     new XAttribute("unit", "hours")));
+            }
+            if (!string.IsNullOrEmpty(Options.DeploymentProvider))
+            {
+                Deployment.Add(new XElement(Xmlns.asmv2deploymentProvider, new XAttribute("codebase", Options.DeploymentProvider)));
             }
             return Deployment;
         }
