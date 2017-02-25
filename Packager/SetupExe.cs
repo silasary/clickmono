@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+
 
 namespace Bootstrapper
 {
@@ -14,7 +11,7 @@ namespace Bootstrapper
         [DllImport("dfshim", CharSet = CharSet.Unicode)]
         static extern int LaunchApplication(string deploymentUrl, IntPtr data, int flags);
 
-        public static readonly string DeploymentUrl = "http://katelyngigante.com/deployment/clickmono/ClickMac.application";
+        public static readonly string DeploymentUrl = "__URL__";
 
         /// <summary>
         /// The main entry point for the application.

@@ -121,8 +121,14 @@ namespace Packager
             var build = Environment.GetEnvironmentVariable("BUILD_NUMBER") ?? "0";
             var manifest = new Manifest()
             {
-                Version = major + "." + minor + "." + patch + "." + build
+                Version = major + "." + minor + "." + patch + "." + build,
             };
+
+            if (!string.IsNullOrEmpty(Options.DeploymentProvider))
+            {
+                manifest.Deployment.ProviderUrl = Options.DeploymentProvider;
+            }
+
 
             target = target.CreateSubdirectory(manifest.Version);
             EnumerateFiles(directory, manifest);
@@ -420,10 +426,6 @@ namespace Packager
                 UpdateNode.Add(new XElement(Xmlns.asmv2expiration,
                     new XAttribute("maximumAge", manifest.Deployment.MaximumAge.TotalHours),
                     new XAttribute("unit", "hours")));
-            }
-            if (!string.IsNullOrEmpty(Options.DeploymentProvider))
-            {
-                Deployment.Add(new XElement(Xmlns.asmv2deploymentProvider, new XAttribute("codebase", Options.DeploymentProvider)));
             }
             return Deployment;
         }
