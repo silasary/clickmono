@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClickMono.Common
 {
@@ -31,10 +27,17 @@ namespace ClickMono.Common
             }
         }
 
-        internal static bool AreEqual(string filename, string digestMethod, string digestValue)
+        internal static bool AreEqual(FileInfo file, string digestMethod, string digestValue)
         {
-            // HACK: Totally not lying.
-            return true;
+            switch (digestMethod)
+            {
+                case "sha256":
+                    return GetSha256DigestValue(file) == digestValue;
+                default:
+                    Console.WriteLine($"Warning: {digestMethod} not supported.");
+                    // HACK: Totally not lying.
+                    return true;
+            }
         }
     }
 }

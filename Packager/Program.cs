@@ -245,6 +245,7 @@ namespace Packager
                                 new XAttribute("level", "asInvoker"),
                                 new XAttribute("uiAccess", "false"))))
                 ),
+                // It's not documented, but this is required for a valid manifest
                 new XElement(Xmlns.asmv2dependency,
                     new XElement(Xmlns.asmv2dependentAssembly,
                         new XAttribute("dependencyType", "preRequisite"),
@@ -292,8 +293,6 @@ namespace Packager
                                     new XText(item.DigestValue)))));
                 }
             }
-            //if (manifest.iconFile == null)
-            //    documentElements.OfType<XElement>().Single(e => e.Name == Xmlns.asmv1description).Remove();
             return new XDocument(
                 new XDeclaration("1.0", "utf-8", null),
                 new XElement(Xmlns.asmv1assembly, documentElements));

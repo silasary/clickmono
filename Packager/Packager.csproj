@@ -54,7 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="DeploymentOptions.cs" />
     <Compile Include="Manifest.cs" />
+    <Compile Include="ManifestFile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.cs" />
@@ -68,10 +70,6 @@
     <Content Include="package.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bootstrapper\Bootstrapper.csproj">
-      <Project>{d2b04c0b-9d54-4c1e-91ad-7434c54d27b9}</Project>
-      <Name>Bootstrapper</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ClickMac\ClickMono.csproj">
       <Project>{c42723d7-32eb-412e-bfaf-dff620204044}</Project>
       <Name>ClickMono</Name>

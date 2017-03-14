@@ -282,11 +282,12 @@ namespace ClickMac
                 var size = int.Parse(dependentAssembly.Attribute("size").Value);
                 string digestValue = dependentAssembly.Element(Xmlns.asmv2hash).Element(Xmlns.dsigDigestValue).Value;
                 string digestMethod = dependentAssembly.Element(Xmlns.asmv2hash).Element(Xmlns.dsigDigestMethod).Attribute("Algorithm").Value.Split('#')[1];
-                if (new FileInfo(filename).Length != size) // HACK: Not an actual equality test. (Although it's usually good enough)
+                FileInfo fileInfo = new FileInfo(filename);
+                if (fileInfo.Length != size) // HACK: Not an actual equality test. (Although it's usually good enough)
                 {
                     isInvalid = true;
                 }
-                if (!Crypto.AreEqual(filename, digestMethod, digestValue))
+                if (!Crypto.AreEqual(fileInfo, digestMethod, digestValue))
                 {
                     isInvalid = true;
                 }
