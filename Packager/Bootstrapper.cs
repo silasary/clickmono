@@ -15,22 +15,13 @@ namespace Packager
 {
     class Bootstrapper
     {
-        //public static int GenerateBootstrap(string DeploymentURL, string exepath)
-        //{
-        //    Console.WriteLine($"Generating Boostrapper {exepath}");
-        //    var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Bootstrapper.exe");
-        //    var setup = WindowsAssembly.FromFile(path);
-        //    var tableStream = (TableStream)setup.NetDirectory.MetadataHeader.GetStream("#~");
-        //    var types = tableStream.GetTable<TypeDefinition>();
-        //    var Program = types.First(t => t.FullName == "Bootstrapper.Program");
-        //    var cctor = Program.Methods.Single(m => m.Name == ".cctor");
-        //    var body = cctor.MethodBody;
-        //    var ldstr = body.Instructions.Where(i => i.OpCode == AsmResolver.Net.Msil.MsilOpCodes.Ldstr && i.Operand.Equals("http://katelyngigante.com/deployment/clickmono/ClickMac.application")).Single();
-        //    ldstr.Operand = DeploymentURL;
-        //    setup.Write(exepath);
-        //    return 0;
-        //}
-
+        /// <summary>
+        /// Compile a bootstrapper exe
+        /// Eventually, it will conform to https://msdn.microsoft.com/en-us/library/ms164294.aspx
+        /// </summary>
+        /// <param name="DeploymenyURL"></param>
+        /// <param name="exepath"></param>
+        /// <returns></returns>
         public static int GenerateBootstrap(string DeploymenyURL, string exepath)
         {
             string code;
