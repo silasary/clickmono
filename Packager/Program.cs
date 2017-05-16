@@ -119,7 +119,7 @@ namespace Packager
             var major = date.ToString("yyMM");
             var minor = date.ToString("ddHH");
             var patch = date.ToString("mmss");
-            var build = Environment.GetEnvironmentVariable("BUILD_NUMBER") ?? "0";
+            var build = Environment.GetEnvironmentVariable("BUILD_NUMBER") ?? Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0";
             var manifest = new Manifest()
             {
                 Version = major + "." + minor + "." + patch + "." + build,
