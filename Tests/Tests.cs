@@ -15,7 +15,7 @@ namespace Tests
         {
             get
             {
-                return Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Library");
+                return Path.Combine(Path.GetDirectoryName(typeof(Tests).Assembly.Location), "Library");
             }
         }
 

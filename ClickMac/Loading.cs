@@ -12,7 +12,7 @@ namespace ClickMac
     {
         public delegate void log(string s, params object[] args);
         public static log Log;
-        public static bool PortableMode = false;
+        public static bool PortableMode;
 
         public static string FixFileSeperator(string path)
         {
@@ -21,15 +21,14 @@ namespace ClickMac
             return path.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
         }
 
-
         public static Manifest LoadApplicationManifest(string manifestUri)
         {
             Log("Loading {0}", manifestUri);
             var wd = Environment.CurrentDirectory;
-            if (!Loading.PortableMode)
+            if (!PortableMode)
                 Environment.CurrentDirectory = Platform.LibraryLocation;
 
-            DeploymentOptions options = new DeploymentOptions();
+            var options = new DeploymentOptions();
 
             var application = new Manifest(manifestUri, options);
             application.ProcessDependencies();
