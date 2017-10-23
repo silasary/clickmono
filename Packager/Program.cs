@@ -97,11 +97,26 @@ namespace Packager
                         options.GenerateBootstrap = args.ElementAt(1);
                         args = args.Skip(2);
                         break;
+                    case "--includesFile":
+                        options.Includes = File.ReadAllLines(args.ElementAt(1)).Select(f => new FileInfo(f).FullName).ToList();
+                        args = args.Skip(2);
+                        break;
+                    case "--include":
+                        options.Includes.Add(new FileInfo(args.ElementAt(1)).FullName);
+                        args = args.Skip(2);
+                        break;
+                    case "--excludesFile":
+                        options.Excludes = File.ReadAllLines(args.ElementAt(1)).Select(f => new FileInfo(f).FullName).ToList();
+                        args = args.Skip(2);
+                        break;
+                    case "--exclude":
+                        options.Excludes.Add(new FileInfo(args.ElementAt(1)).FullName);
+                        args = args.Skip(2);
+                        break;
                     default:
                         Console.WriteLine($"UNKNOWN ARG: {args.First()}");
                         Environment.Exit(1);
                         break;
-
                 }
             }
         }
@@ -120,7 +135,7 @@ namespace Packager
             var minor = date.ToString("ddHH");
             var patch = date.ToString("mmss");
             var build = Environment.GetEnvironmentVariable("BUILD_NUMBER") ?? Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0";
-            var manifest = new Manifest()
+            var manifest = new Manifest
             {
                 Version = major + "." + minor + "." + patch + "." + build,
             };
@@ -151,7 +166,7 @@ namespace Packager
 
         private int Update()
         {
-            bool deploymentUpdated = false;
+            var deploymentUpdated = false;
             //bool applicationUpdated = false;
 
             var DeploymentManifest = XDocument.Load(Options.Target);
@@ -177,7 +192,7 @@ namespace Packager
             return 0;
         }
 
-        private static void EnumerateFiles(DirectoryInfo directory, Manifest manifest)
+        private void EnumerateFiles(DirectoryInfo directory, Manifest manifest)
         {
             manifest.Files = new List<ManifestFile>();
 
@@ -185,7 +200,16 @@ namespace Packager
 
             foreach (var file in directory.EnumerateFiles())
             {
+                // vshost files are always useless.
                 if (file.Name.Contains(".vshost"))
+                    continue;
+
+                // Blacklist
+                if (Options.Excludes.Contains(file.FullName))
+                    continue;
+
+                // Whitelist, if any.
+                if (Options.Includes.Any() && !Options.Includes.Contains(file.FullName))
                     continue;
 
                 if (!(file.Extension == ".dll" || file.Extension == ".exe"))
