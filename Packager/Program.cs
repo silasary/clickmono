@@ -152,12 +152,11 @@ namespace Packager
             var xml = GenerateManifest(directory, manifest);
             var manifestPath = Path.Combine(target.FullName, Path.GetFileName(project) + ".manifest");
 
-            File.WriteAllText(manifestPath, xml.ToString(SaveOptions.OmitDuplicateNamespaces));
-
             foreach (var file in manifest.Files)
             {
                 File.Copy(Path.Combine(directory.FullName, file.Name), Path.Combine(target.FullName, file.Name), true);
             }
+            File.WriteAllText(manifestPath, xml.ToString(SaveOptions.OmitDuplicateNamespaces));
             xml = GenerateDeploymentManifest(manifest, File.ReadAllBytes(manifestPath));
             File.WriteAllText(Path.Combine(directory.FullName, "_publish", Path.GetFileNameWithoutExtension(project) + ".application"), xml.ToString(SaveOptions.OmitDuplicateNamespaces));
             return 0;
