@@ -145,7 +145,6 @@ namespace Packager
                 manifest.Deployment.ProviderUrl = Options.DeploymentProvider;
             }
 
-
             target = target.CreateSubdirectory(manifest.Version);
             EnumerateFiles(directory, manifest);
             manifest.entryPoint = manifest.Files.Single(n => n.Name == Path.GetFileName(project));

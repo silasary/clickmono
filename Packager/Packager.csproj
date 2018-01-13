@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Packager</RootNamespace>
     <AssemblyName>Packager</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>anycpu</PlatformTarget>
@@ -71,7 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClickMac\ClickMono.csproj">
-      <Project>{c42723d7-32eb-412e-bfaf-dff620204044}</Project>
+      <Project>{C42723D7-32EB-412E-BFAF-DFF620204044}</Project>
       <Name>ClickMono</Name>
     </ProjectReference>
   </ItemGroup>

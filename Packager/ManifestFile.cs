@@ -22,8 +22,17 @@ namespace Packager
                 AssemblyName = asm.GetName().Name;
                 Version = asm.GetName().Version.ToString();
                 PublicKeyToken = BitConverter.ToString(asm.GetName().GetPublicKeyToken()).ToUpperInvariant().Replace("-", "");
+                try
+                {
+
                 Product = asm.GetCustomAttributes<AssemblyProductAttribute>().SingleOrDefault()?.Product;
                 Publisher = asm.GetCustomAttributes<AssemblyCompanyAttribute>().SingleOrDefault()?.Company;
+                }
+                catch (FileNotFoundException)
+                {
+                    Product = Name;
+                    Publisher = Name;
+                }
                 Architecture = asm.GetName().ProcessorArchitecture;
             }
             catch (BadImageFormatException) // It's not a dotnot assembly.
