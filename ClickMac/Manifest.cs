@@ -57,6 +57,17 @@ namespace ClickMac
                     }
                 }
             }
+            catch (WebException)
+            {
+                Xml = ApplicationStore.LoadLatestOfflineManifest(Uri);
+                if (Xml == null)
+                {
+                    if (string.IsNullOrEmpty(subfolder))
+                        throw new InvalidOperationException("Can't load Manifest");
+                    var cached = Path.Combine(Platform.LibraryLocation, Subfolder, Path.GetFileName(Uri));
+                    Xml = XDocument.Load(cached);
+                }
+            }
             DiskLocation = Xml.Root.Element(Xmlns.asmv1assemblyIdentity).Attribute("name").Value;
             Identity = string.Format("{0}_{1}", Path.GetFileNameWithoutExtension(DiskLocation), Xml.Root.Element(Xmlns.asmv1assemblyIdentity).Attribute("version").Value);
             var deployment = Xml.Root.Element(Xmlns.asmv2deployment);

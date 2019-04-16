@@ -3,11 +3,32 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ClickMac
 {
     static class ApplicationStore
     {
+        public static XDocument LoadLatestOfflineManifest(string Uri)
+        {
+            switch (Path.GetExtension(Uri))
+            {
+                case ".application":
+            var AppName = Path.GetFileNameWithoutExtension(Uri);
+            var options = Directory.GetFiles(Path.Combine(Platform.LibraryLocation, "Manifests"), AppName + "*.application");
+            if (options.Length == 0)
+                return null;
+            if (options.Length == 1)
+                return XDocument.Load(options[0]);
+
+            return XDocument.Load(options.Last());
+
+                case ".manifest":
+                    return null;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
         public static void Install(Manifest manifest)
         {
             var dest = Path.Combine(Platform.LibraryLocation, "Manifests", manifest.Identity + ".application");
