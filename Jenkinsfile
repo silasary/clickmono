@@ -1,4 +1,4 @@
-@Library('SilasaryHelpers') // Where SilasaryHelpers is https://github.com/silasary/JenkinsHelpers
+@Library('SilasaryHelpers') _ // Where SilasaryHelpers is https://github.com/silasary/JenkinsHelpers
 node {
     stage('Clone'){
 		checkout scm
