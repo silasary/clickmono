@@ -16,7 +16,7 @@ namespace ClickMac
 
         public static string infoPlist { get { return Path.Combine("..", "Info.plist"); } }
 
-        private static void Main(string[] args)
+        internal static void ActualMain(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             Loading.Log = Console.WriteLine;
@@ -101,21 +101,16 @@ namespace ClickMac
             {
                 if (File.Exists("ClickMac.old.exe"))
                     File.Delete("ClickMac.old.exe");
-                if (File.Exists("Kamahl.Deployment.dll.old"))
-                    File.Delete("Kamahl.Deployment.dll.old");
+
                 var update = Loading.LoadApplicationManifest("https://katelyngigante.com/deployment/clickmono/ClickMac.application");
                 if (update.Entry.executable == null)
                     return false;
                 if (!File.Exists("ClickMac.version") || update.Entry.version != File.ReadAllText("ClickMac.version"))
                 {
                     var loc = Assembly.GetExecutingAssembly().Location;
-                    var deploc = Path.Combine(Path.GetDirectoryName(loc), "Kamahl.Deployment.dll");
                     File.Move(loc, "ClickMac.old.exe");
-                    if (File.Exists(deploc))
-                        File.Move(deploc, "Kamahl.Deployment.dll.old");
+
                     File.Copy(Path.Combine(update.Entry.folder, update.Entry.executable), loc);
-                    if (File.Exists(Path.Combine(update.Entry.folder, "Kamahl.Deployment.dll")))
-                        File.Copy(Path.Combine(update.Entry.folder, "Kamahl.Deployment.dll"), deploc);
                     File.WriteAllText("ClickMac.version", update.Entry.version);
                     Console.WriteLine("Updated {0} to version {1}", Path.GetFileName(loc), update.Entry.version);
                     if (args != null)

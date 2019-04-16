@@ -1,4 +1,5 @@
 ﻿using ClickMono.Common;
+using Sentry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,31 +18,43 @@ namespace Packager
 
         static int Main(string[] args)
         {
-            Console.WriteLine("Packager.exe invoked with:");
-            Console.WriteLine($"\tArgs={string.Join("|", args)}");
-            Console.WriteLine($"\tWorking Directory={Environment.CurrentDirectory}");
-            var program = new Program();
-            if (args.Length == 0)
+            using (SentrySdk.Init((o) =>
             {
-                Console.WriteLine("No target specified.");
-                return 1;
-            }
-            else if (args.Length == 1 && File.Exists(args[0]))
+                o.Dsn = new Dsn("https://cc7126205b3b4d7894bb8e43fd6bc04b@sentry.io/1440131");
+#if DEBUG
+                o.Environment = "Debug";
+#else
+                o.Environment = "Release";
+#endif
+            }))
             {
-                var project = new FileInfo(args[0]).FullName;
-                Console.WriteLine($"Packaging {project}");
-                program.Options = new StartupOptions
+
+                Console.WriteLine("Packager.exe invoked with:");
+                Console.WriteLine($"\tArgs={string.Join("|", args)}");
+                Console.WriteLine($"\tWorking Directory={Environment.CurrentDirectory}");
+                var program = new Program();
+                if (args.Length == 0)
                 {
-                    Target = project,
-                    Mode = StartupOptions.Modes.Generate
-                };
+                    Console.WriteLine("No target specified.");
+                    return 1;
+                }
+                else if (args.Length == 1 && File.Exists(args[0]))
+                {
+                    var project = new FileInfo(args[0]).FullName;
+                    Console.WriteLine($"Packaging {project}");
+                    program.Options = new StartupOptions
+                    {
+                        Target = project,
+                        Mode = StartupOptions.Modes.Generate
+                    };
+                }
+                else
+                {
+                    program.Options = new StartupOptions();
+                    IterateArgs(args, program.Options);
+                }
+                return program.Run();
             }
-            else
-            {
-                program.Options = new StartupOptions();
-                IterateArgs(args, program.Options);
-            }
-            return program.Run();
         }
 
         private int Run()

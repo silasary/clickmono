@@ -93,6 +93,7 @@
     <Compile Include="Common\Xmlns.cs" />
     <Compile Include="CurlWrapper.cs" />
     <Compile Include="DeploymentOptions.cs" />
+    <Compile Include="MainClass.cs" />
     <Compile Include="PreLoading.cs" />
     <Compile Include="Loading.cs" />
     <Compile Include="Platform.cs" />
@@ -105,7 +106,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="..\README.md">
       <Link>README.md</Link>
@@ -137,12 +137,17 @@
     <PublishFile Include="ClickMac.pdb">
       <Visible>False</Visible>
       <Group>symbols</Group>
-      <TargetPath>
-      </TargetPath>
       <PublishState>Include</PublishState>
       <IncludeHash>True</IncludeHash>
+      <TargetPath>
+      </TargetPath>
       <FileType>File</FileType>
     </PublishFile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Sentry">
+      <Version>1.1.2</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

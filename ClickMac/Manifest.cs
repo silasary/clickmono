@@ -260,7 +260,7 @@ namespace ClickMac
                 Children.Add(manifest);
                 entry.Import(manifest.entry);
             }
-            if (!String.IsNullOrWhiteSpace(Subfolder))
+            if (!string.IsNullOrWhiteSpace(Subfolder))
             {
                 var dest = Path.Combine(Platform.LibraryLocation, Subfolder, Path.GetFileName(codebase));
                 if (!File.Exists(dest))
