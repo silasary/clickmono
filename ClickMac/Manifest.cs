@@ -25,12 +25,11 @@ namespace ClickMac
 
 
         public XDocument Xml;
-        public String Location;
+        public string Location;
         public string DiskLocation;
         public string Subfolder;
 
-        private EntryPoint entry = new EntryPoint();
-        public EntryPoint Entry { get { return entry; } }
+        public EntryPoint Entry { get; } = new EntryPoint();
 
         public List<Manifest> Children { get; private set; } = new List<Manifest>();
         public readonly DeploymentOptions Options;
@@ -127,7 +126,7 @@ namespace ClickMac
                 }
                 Xml = XDocument.Load(DiskLocation);
             }                
-            entry.DeploymentProviderUrl = Location;
+            Entry.DeploymentProviderUrl = Location;
             
         }
 
@@ -202,11 +201,11 @@ namespace ClickMac
             var entryPoint = Xml.Root.Element(Xmlns.asmv2entryPoint);
             if (entryPoint != null)
             {
-                entry.executable = entryPoint.Element(Xmlns.asmv2commandLine).Attribute("file").Value;
-                entry.folder = new DirectoryInfo(Subfolder).FullName; // Alsolute reference.
+                Entry.executable = entryPoint.Element(Xmlns.asmv2commandLine).Attribute("file").Value;
+                Entry.folder = new DirectoryInfo(Subfolder).FullName; // Alsolute reference.
                 var identity = entryPoint.Element(Xmlns.asmv2assemblyIdentity);
-                entry.version = identity.Attribute("version").Value;
-                entry.displayName = identity.Attribute("name").Value;
+                Entry.version = identity.Attribute("version").Value;
+                Entry.displayName = identity.Attribute("name").Value;
             }
             var description = Xml.Root.Element(Xmlns.asmv1description);
             if (description != null)
@@ -216,7 +215,7 @@ namespace ClickMac
                 {
                     if (File.Exists(Path.Combine(Subfolder, iconFile.Value)))
                     {
-                        entry.icon = Path.Combine(Subfolder, iconFile.Value);
+                        Entry.icon = Path.Combine(Subfolder, iconFile.Value);
                     }
                 }
             }
@@ -258,7 +257,7 @@ namespace ClickMac
                 var manifest = new Manifest(path + "/" + codebase.Replace('\\', '/'), Options, version);
                 manifest.ProcessDependencies();
                 Children.Add(manifest);
-                entry.Import(manifest.entry);
+                Entry.Import(manifest.Entry);
             }
             if (!string.IsNullOrWhiteSpace(Subfolder))
             {

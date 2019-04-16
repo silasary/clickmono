@@ -16,7 +16,7 @@ namespace ClickMac
 
         public static string FixFileSeperator(string path)
         {
-            if (String.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
                 return path;
             return path.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
         }
