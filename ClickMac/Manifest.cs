@@ -158,7 +158,19 @@ namespace ClickMac
                 return false; // This code should never have been called. Something's probably wrong.  Fail it.
             signed.LoadXml((XmlElement)nodeList[0]);
             AsymmetricAlgorithm key;
-            var validSignature = signed.CheckSignatureReturningKey(out key);
+
+            bool validSignature;
+            try
+            {
+                validSignature = signed.CheckSignatureReturningKey(out key);
+            }
+            catch (CryptographicException c) when (c.Message == "SignatureDescription could not be created for the signature algorithm supplied.")
+            {
+                var method = xdoc.GetElementsByTagName("SignatureMethod")[0].Attributes["Algorithm"];
+                Loading.Log("Cannot verify signatures with {0}", method);
+                validSignature = false;
+            }
+
             if (validSignature && Update)
             {
                 var updatedLocation = 
